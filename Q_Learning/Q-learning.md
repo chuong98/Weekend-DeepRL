@@ -67,7 +67,7 @@ $$V(s) = \max_a[r(s,a) + \gamma \sum_{s'} P(s'|s,a) V(s')]$$
 + For short notation, we can ignore the "Stochastic Process" and simplify the Q-function as follows.
   <!-- $$Q(s,a) = r(s,a) + \gamma \max_a[Q(s',a)]$$ --> 
 
-<div align="center"><img style="background: white;" src="https://render.githubusercontent.com/render/math?math="></div>
+<div align="center"><img style="background: white;" src="../svg/fcJhDqkadG.svg"></div>
 
 
 ### 6. Temporal Difference (TD)
