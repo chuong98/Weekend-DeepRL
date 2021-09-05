@@ -4,7 +4,7 @@
 RL is a method of learning that uses a reward function to guide the agent in the search for the best path to a goal. 
 RL system has the follow components:
 + $s$: **state** describes the observation of the environment. 
-+ $a$: **action** descibes how the agent interacts with the environment.
++ $a$: **action** describes how the agent interacts with the environment.
 + $\pi(s)$: **policy** describes the rule that the agent decices to take an action $a$ at the state $s$.
 + $r$: **reward** describes the reward for the agent after performing an action.
 + $\gamma$: **discount factor** describes how much the agent cares about future rewards.
