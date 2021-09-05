@@ -31,5 +31,6 @@ env.close()
 + List all available environments: `gym.envs.registry.all()`.
 
 ### 3. Algorithms:
+Best viewed in VSCode due to latex rendering.
 1. [Q-Learning](Q_Learning/Q-learning.md)
 2. [Deep Q-Learning (DQN)](Deep_Q_Learning/Deep_Q-learning.md)
