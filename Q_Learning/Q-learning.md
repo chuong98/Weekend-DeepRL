@@ -1,4 +1,4 @@
-# REINFORCEMENT LEARNING (RL)
+# REINFORCEMENT LEARNING (RL) and Q-LEARNING
 
 ### 1. Introduction
 RL is a method of learning that uses a reward function to guide the agent in the search for the best path to a goal. 
