@@ -41,7 +41,7 @@ This procedure is basically the "Dynamic Programing".
 ### 4. What if the environment is uncertain ? 
 In the example above, the action is 100% certain, e.g `turn-left` command will definitely move the agent to the left. However, in practice, there are always uncertainties, e.g `turn-left` command will move the agent to the left in 80% cases but $0% cases it can move to the right or forward.
 <p align="middle">
-  <img src="Fig/F3.png" width="60%" /> 
+  <img src="Fig/F3.png" align="middle" $$width="60%" /> 
 </p>
 
 To make the problem easier, we requires the process to be an `Markov Process`, that is:
