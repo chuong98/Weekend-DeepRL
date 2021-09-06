@@ -1,5 +1,8 @@
 # Reinforcement Leaning Tutorial
 
+This is my personal notes for the course [Udemy Deep Reinforcement Learning 2.0](https://www.udemy.com/course/deep-reinforcement-learning/).
+In addition, I also update the code from [Basic Reinforcement Learning](https://github.com/vmayoral/basic_reinforcement_learning), using Pytorch instead of Keras.
+
 ### 1. Env Setup:
    
 ```bash 
@@ -32,5 +35,5 @@ env.close()
 
 ### 3. Algorithms:
 Best viewed in VSCode due to latex rendering.
-1. [Q-Learning](Q_Learning/Q-learning.md)
-2. [Deep Q-Learning (DQN)](Deep_Q_Learning/Deep_Q-learning.md)
+1. [Q-Learning](T1_QLearning/Q-learning.md)
+2. [Deep Q-Learning (DQN)](T2_DeepQLearning/Deep_Q-learning.md)

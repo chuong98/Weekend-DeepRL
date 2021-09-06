@@ -84,6 +84,9 @@ $$V(s) = \max_a[r(s,a) + \gamma \sum_{s'} P(s'|s,a) V(s')]$$
   <img src="Fig/Q-Learning.png" width="80%" /> 
 </p>
 
++ The algorithm is implemented at [q_learning.py](q_learning.py).
++ An example of cartpole is shown in [cartpole.py](cartpole.py).
++ An example of mountain car is shown in [mountain_car.py](mountain_car.py).
 
 
 
