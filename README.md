@@ -1,7 +1,13 @@
 # Reinforcement Leaning Tutorial
 
 This is my personal notes for the course [Udemy Deep Reinforcement Learning 2.0](https://www.udemy.com/course/deep-reinforcement-learning/).
+
 In addition, I also update the code from [Basic Reinforcement Learning](https://github.com/vmayoral/basic_reinforcement_learning), using Pytorch instead of Keras.
+
+Other great resource for self-study RL:
++ https://simoninithomas.github.io/deep-rl-course/#syllabus
++ https://github.com/sweetice/Deep-reinforcement-learning-with-pytorch
++ https://github.com/thu-ml/tianshou
 
 ### 1. Env Setup:
    
