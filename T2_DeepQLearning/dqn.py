@@ -55,7 +55,7 @@ class Memory:
             states = torch.FloatTensor([m['state'] for m in mini_batch]),
             actions = torch.LongTensor([m['action'] for m in mini_batch]),
             rewards = torch.FloatTensor([m['reward'] for m in mini_batch]),
-            new_states = torch.FloatTensor([m['newState'] for m in mini_batch]),
+            next_states = torch.FloatTensor([m['newState'] for m in mini_batch]),
             is_finals = torch.FloatTensor([m['isFinal'] for m in mini_batch])
         )
 
@@ -89,7 +89,9 @@ class DQN:
                                     memory_size=2000,
                                     network_iters=100)):
         self.num_actions = num_actions
-        self.eval_net = Network(num_states, num_actions)
+        # The eval network is used for calculating the current Q-value
+        self.net = Network(num_states, num_actions)
+        # The target network is used to compute the next Q-values
         self.target_net = Network(num_states,num_actions)
         self.batch_size = train_cfg['batch_size']
         self.gamma = train_cfg['gamma']
@@ -99,13 +101,13 @@ class DQN:
         self.learn_step_counter = 0
         # Network optimizer
         self.loss_func = nn.MSELoss() 
-        self.optimizer = torch.optim.Adam(self.eval_net.parameters(), lr=train_cfg['optim_lr'])
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=train_cfg['optim_lr'])
 
     def choose_action(self, state):
         state = torch.FloatTensor(state).unsqueeze(0)
         if torch.cuda.is_available():
             state = state.cuda()
-        action_value = self.eval_net(state)
+        action_value = self.net(state)
         action_prob = F.softmax(action_value, dim=1).cpu().data.numpy()
         if np.random.randn() <= self.explore_rate:# random policy
             action = np.random.choice(np.arange(self.num_actions),
@@ -118,32 +120,32 @@ class DQN:
         self.memory.addMemory(state, action, reward, new_state, is_final)
 
     def learn(self):
-        #update the parameters
+        #update the target network periodically
         if self.learn_step_counter % self.network_iters ==0:
-            self.target_net.load_state_dict(self.eval_net.state_dict())
+            self.target_net.load_state_dict(self.net.state_dict())
         self.learn_step_counter+=1
 
         #sample batch from memory
         mini_batch = self.memory.getMiniBatch(self.batch_size)
-
-        #compute the loss
         states = mini_batch['states']
         rewards = mini_batch['rewards']
-        new_states = mini_batch['new_states']
+        next_states = mini_batch['next_states']
         isFinals = mini_batch['is_finals']
+
+        #compute the loss
         if torch.cuda.is_available():
             states.cuda()
             rewards.cuda()
-            new_states.cuda()
+            next_states.cuda()
             isFinals.cuda()
-        q_eval = self.eval_net(states)
+        q_eval = self.net(states)
         with torch.no_grad():
-            q_next = self.target_net(new_states)
+            q_next = self.target_net(next_states)
             q_next_max = torch.max(q_next, dim=1)[0].view(-1,1)
             q_target = rewards + self.gamma* (1-isFinals) *q_next_max
         loss = self.loss_func(q_eval, q_target)
 
-        #backward and optimize
+        #backward and optimize the network 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
