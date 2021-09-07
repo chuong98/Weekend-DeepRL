@@ -44,7 +44,7 @@ if __name__ == '__main__':
             env.render()
 
             # Pick an action based on the current state
-            action = qlearn.chooseAction(state)
+            action = qlearn.choose_action(state)
             # Execute the action and get feedback
             observation, reward, done, info = env.step(action)
 
