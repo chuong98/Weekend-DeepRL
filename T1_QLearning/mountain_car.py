@@ -12,6 +12,7 @@ def parse_args():
     parser.add_argument('--n_bins', type=int, default=10)
     parser.add_argument('--render', '-r', action='store_true')
     parser.add_argument('--monitor', '-m', action='store_true')
+    parser.add_argument('--plus_reward', '-p', action='store_true')
     args = parser.parse_args()
     return args
 
@@ -25,6 +26,7 @@ if __name__ == '__main__':
 
     # Experiments parameters
     max_number_of_steps = env.spec.max_episode_steps #200
+    reward_thr = env.spec.reward_threshold
     num_episodes = args.episodes
 
     # Number of states is huge so in order to simplify the situation
@@ -45,7 +47,7 @@ if __name__ == '__main__':
 
     for i_episode in tqdm(range(num_episodes)):
         observation = env.reset()
-        cumulated_reward = 0
+        acumulated_reward = 0
         # Discretize the observation to state
         state = obs2state(observation)
 
@@ -61,19 +63,25 @@ if __name__ == '__main__':
             # Digitize the observation to get a state
             nextState = obs2state(observation)
 
+            # modify the reward for the agent to help it learn easier
+            if args.plus_reward:
+                # continuous_reward = 1/2 m*v^2 + 1/2*g*h^2 
+                continuous_reward = 0.5*observation[1]**2 + 0.5*9.8*observation[0]**2
+                reward =reward + 0.1*continuous_reward
+
             qlearn.learn(state, action, reward, nextState)
             state = nextState
-            cumulated_reward += reward
-            reward_list.append(cumulated_reward)
+            acumulated_reward += reward
+            reward_list.append(acumulated_reward)
 
-            if reward !=-1:
-                print("Episode {:d} reward score: {:0.2f}".format(i_episode, cumulated_reward))
             if done:
                 break                        
         
         # Reduce the random action probability after each episode
         qlearn.epsilon = qlearn.epsilon * 0.999 # added epsilon decay
-    ax.set_xlim(0,300)
-    #ax.cla()
-    ax.plot(reward_list, 'g-', label='total_loss')
-    # plt.pause(0.001)
+        reward_list.append(acumulated_reward)
+
+    plt.plot(reward_list)
+    plt.plot([0, num_episodes],[reward_thr, reward_thr])
+    plt.ylabel('Acumulated Reward')
+    plt.show()  

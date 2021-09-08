@@ -10,7 +10,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train an agent')
     parser.add_argument('--episodes', '-e', type=int, default=500)
     parser.add_argument('--n_bins_pos', type=int, default=10)
-    parser.add_argument('--n_bins_angle', type=int, default=10)
+    parser.add_argument('--n_bins_angle', type=int, default=8)
     parser.add_argument('--render', '-r', action='store_true')
     parser.add_argument('--monitor', '-m', action='store_true')
     args = parser.parse_args()
@@ -44,7 +44,7 @@ if __name__ == '__main__':
                             to_bin(angle_rate_of_change, angle_rate_bins)])
     # The Q-learn algorithm
     qlearn = QLearn(actions=range(env.action_space.n),
-                    alpha=0.65, gamma=1.0, epsilon=0.15)
+                    alpha=0.5, gamma=1.0, epsilon=0.15)
     
     reward_list = []
     for i_episode in tqdm(range(num_episodes)):
@@ -70,8 +70,9 @@ if __name__ == '__main__':
             
             if done:
                 break                        
-        # Reduce the random action probability after each episode
+        
         reward_list.append(acumulated_reward)
+    
     plt.plot(reward_list)
     plt.plot([0, num_episodes],[reward_thr, reward_thr])
     plt.ylabel('Acumulated Reward')
