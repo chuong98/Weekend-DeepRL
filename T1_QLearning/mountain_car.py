@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     for i_episode in tqdm(range(num_episodes)):
         observation = env.reset()
-        acumulated_reward = 0
+        episode_reward = 0
         # Discretize the observation to state
         state = obs2state(observation)
 
@@ -71,15 +71,15 @@ if __name__ == '__main__':
 
             qlearn.learn(state, action, reward, nextState)
             state = nextState
-            acumulated_reward += reward
-            reward_list.append(acumulated_reward)
+            episode_reward += reward
+            reward_list.append(episode_reward)
 
             if done:
                 break                        
         
         # Reduce the random action probability after each episode
         qlearn.epsilon = qlearn.epsilon * 0.999 # added epsilon decay
-        reward_list.append(acumulated_reward)
+        reward_list.append(episode_reward)
 
     plt.plot(reward_list)
     plt.plot([0, num_episodes],[reward_thr, reward_thr])

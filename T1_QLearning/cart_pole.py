@@ -49,7 +49,7 @@ if __name__ == '__main__':
     reward_list = []
     for i_episode in tqdm(range(num_episodes)):
         observation = env.reset()
-        acumulated_reward = 0
+        episode_reward = 0
         # Discretize the observation to state
         state = obs2state(observation)
 
@@ -64,14 +64,14 @@ if __name__ == '__main__':
 
             # Digitize the observation to get a state
             nextState = obs2state(observation)
-            acumulated_reward += reward
+            episode_reward += reward
             qlearn.learn(state, action, reward, nextState)
             state = nextState
             
             if done:
                 break                        
         
-        reward_list.append(acumulated_reward)
+        reward_list.append(episode_reward)
     
     plt.plot(reward_list)
     plt.plot([0, num_episodes],[reward_thr, reward_thr])
