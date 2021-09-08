@@ -1,29 +1,40 @@
+import argparse
+import matplotlib.pyplot as plt
 import gym
 from gym.wrappers import Monitor
-import numpy
 import pandas
 from tqdm import tqdm
 from q_learning import QLearn, build_state, to_bin
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Train an agent')
+    parser.add_argument('--episodes', '-e', type=int, default=500)
+    parser.add_argument('--n_bins_pos', type=int, default=10)
+    parser.add_argument('--n_bins_angle', type=int, default=10)
+    parser.add_argument('--render', '-r', action='store_true')
+    parser.add_argument('--monitor', '-m', action='store_true')
+    args = parser.parse_args()
+    return args
+
 if __name__ == '__main__':
+    args = parse_args()
     env = gym.make('CartPole-v0')
     # Record the experiments
-    env = Monitor(env, '/tmp/cartpole-experiment-1', force=True,
-        video_callable=lambda count: count % 20 == 0)
+    if args.monitor:
+        env = Monitor(env, './cache/cartpole-experiment-1', force=True,
+                    video_callable=lambda count: count % 20 == 0)
 
     # Experiments parameters
-    num_episode = 1200
     max_number_of_steps = env.spec.max_episode_steps #200
-    last_time_steps = numpy.ndarray(0)
-    n_bins_pos = 8
-    n_bins_angle = 10
+    reward_thr = env.spec.reward_threshold
+    num_episodes = args.episodes
 
     # Number of states is huge so in order to simplify the situation
     # we discretize the space to:
-    cart_position_bins = pandas.cut([-2.4, 2.4], bins=n_bins_pos, retbins=True)[1][1:-1]
-    pole_angle_bins = pandas.cut([-2, 2], bins=n_bins_angle, retbins=True)[1][1:-1]
-    cart_velocity_bins = pandas.cut([-1, 1], bins=n_bins_pos, retbins=True)[1][1:-1]
-    angle_rate_bins = pandas.cut([-3.5, 3.5], bins=n_bins_angle, retbins=True)[1][1:-1]
+    cart_position_bins = pandas.cut([-2.4, 2.4], bins=args.n_bins_pos, retbins=True)[1][1:-1]
+    pole_angle_bins = pandas.cut([-2, 2], bins=args.n_bins_angle, retbins=True)[1][1:-1]
+    cart_velocity_bins = pandas.cut([-1, 1], bins=args.n_bins_pos, retbins=True)[1][1:-1]
+    angle_rate_bins = pandas.cut([-3.5, 3.5], bins=args.n_bins_angle, retbins=True)[1][1:-1]
 
     def obs2state(observation):
         cart_position, pole_angle, cart_velocity, angle_rate_of_change = observation
@@ -33,15 +44,18 @@ if __name__ == '__main__':
                             to_bin(angle_rate_of_change, angle_rate_bins)])
     # The Q-learn algorithm
     qlearn = QLearn(actions=range(env.action_space.n),
-                    alpha=0.5, gamma=0.90, epsilon=0.1)
+                    alpha=0.65, gamma=1.0, epsilon=0.15)
     
-    for i_episode in tqdm(range(num_episode)):
+    reward_list = []
+    for i_episode in tqdm(range(num_episodes)):
         observation = env.reset()
+        acumulated_reward = 0
         # Discretize the observation to state
         state = obs2state(observation)
 
         for t in range(max_number_of_steps):
-            env.render()
+            if args.render:
+                env.render()
 
             # Pick an action based on the current state
             action = qlearn.choose_action(state)
@@ -50,21 +64,15 @@ if __name__ == '__main__':
 
             # Digitize the observation to get a state
             nextState = obs2state(observation)
-
-            if not(done):
-                qlearn.learn(state, action, reward, nextState)
-                state = nextState
-            else:
-                # Q-learn stuff
-                reward = -200
-                qlearn.learn(state, action, reward, nextState)
-                last_time_steps = numpy.append(last_time_steps, [int(t + 1)])
+            acumulated_reward += reward
+            qlearn.learn(state, action, reward, nextState)
+            state = nextState
+            
+            if done:
                 break                        
-
-    l = last_time_steps.tolist()
-    l.sort()
-    print("Overall score: {:0.2f}".format(last_time_steps.mean()))
-    print()
-    # print("Best 100 score: {:0.2f}".format(reduce(lambda x, y: x + y, l[-100:]) / len(l[-100:])))
-
-    env.monitor.close()
+        # Reduce the random action probability after each episode
+        reward_list.append(acumulated_reward)
+    plt.plot(reward_list)
+    plt.plot([0, num_episodes],[reward_thr, reward_thr])
+    plt.ylabel('Acumulated Reward')
+    plt.show()    

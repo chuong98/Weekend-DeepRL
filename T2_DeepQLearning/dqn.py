@@ -139,14 +139,32 @@ class DQN:
             next_states.cuda()
             isFinals.cuda()
         q_eval = self.net(states)
-        with torch.no_grad():
-            q_next = self.target_net(next_states)
-            q_next_max = torch.max(q_next, dim=1)[0].view(-1,1)
-            q_target = rewards + self.gamma* (1-isFinals) *q_next_max
+        q_target = self.get_target(next_states, rewards, isFinals)
         loss = self.loss_func(q_eval, q_target)
 
         #backward and optimize the network 
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
+    def get_target(self, next_states, rewards, isFinals):
+        with torch.no_grad():
+            q_next = self.target_net(next_states)
+            q_next_max = torch.max(q_next, dim=1)[0].view(-1,1)
+            q_target = rewards + self.gamma* (1-isFinals) *q_next_max
+        return q_target
+
+class DDQN(DQN):
+    """ Double DQN """
+    def get_target(self, next_states, rewards, isFinals):
+        with torch.no_grad():
+            # action selection: using the eval network
+            q_next  = self.net(next_states)
+            action_max_idxes = q_next.argmax(dim=1)
+            # action evaluation: using target network
+            q_next = self.target_net(next_states) 
+            q_next_max = q_next[action_max_idxes]
+            # target
+            q_target = rewards + self.gamma* (1-isFinals) *q_next_max
+        return q_target
 

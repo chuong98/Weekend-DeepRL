@@ -13,9 +13,11 @@ Other great resource for self-study RL:
    
 ```bash 
 conda create -n RL --python=3.8 -y
+conda install tqdm mathplotlib scipy
+conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
 pip install gym 
 pip install gym[all] #Install the environment dependence
-# or pip install cmake 'gym[atari]' scipy
+# or pip install cmake 'gym[atari]'
 ``` 
 
 ### 2. Try Gym environment
@@ -42,4 +44,4 @@ env.close()
 ### 3. Algorithms:
 Best viewed in VSCode due to latex rendering.
 1. [Q-Learning](T1_QLearning/Q-learning.md)
-2. [Deep Q-Learning (DQN)](T2_DeepQLearning/Deep_Q-learning.md)
+2. [Deep Q-Learning (DQN)](T2_DeepQLearning/DQN.md)

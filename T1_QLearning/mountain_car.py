@@ -1,4 +1,5 @@
 import argparse
+import matplotlib.pyplot as plt
 import gym
 from gym.wrappers import Monitor
 import pandas
@@ -38,10 +39,13 @@ if __name__ == '__main__':
     # The Q-learn algorithm
     qlearn = QLearn(actions=range(env.action_space.n),
                     alpha=0.5, gamma=0.90, epsilon=0.1)
-    cumulated_reward = 0
+    reward_list = []
+    # plt.ion()
+    fig, ax = plt.subplots()
 
     for i_episode in tqdm(range(num_episodes)):
         observation = env.reset()
+        cumulated_reward = 0
         # Discretize the observation to state
         state = obs2state(observation)
 
@@ -60,7 +64,8 @@ if __name__ == '__main__':
             qlearn.learn(state, action, reward, nextState)
             state = nextState
             cumulated_reward += reward
-                
+            reward_list.append(cumulated_reward)
+
             if reward !=-1:
                 print("Episode {:d} reward score: {:0.2f}".format(i_episode, cumulated_reward))
             if done:
@@ -68,3 +73,7 @@ if __name__ == '__main__':
         
         # Reduce the random action probability after each episode
         qlearn.epsilon = qlearn.epsilon * 0.999 # added epsilon decay
+    ax.set_xlim(0,300)
+    #ax.cla()
+    ax.plot(reward_list, 'g-', label='total_loss')
+    # plt.pause(0.001)
