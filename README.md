@@ -44,4 +44,4 @@ env.close()
 ### 3. Algorithms:
 Best viewed in VSCode due to latex rendering.
 1. [Q-Learning](T1_QLearning/Q-learning.md): Background of Q-Learning
-2. [Deep Q-Learning (DQN)](T2_DeepQLearning/DQN.md): DQN(Nature 2015), Double-DQN(AAAI 2016), 
+2. [Deep Q-Learning (DQN)](T2_DeepQLearning/DQN.md): DQN(Nature 2015), Double-DQN(AAAI 2016), Priority Experience Replay (ICLR2016)
