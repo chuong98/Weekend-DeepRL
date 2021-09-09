@@ -19,7 +19,7 @@ class QLearn:
     def getQ(self,state,action):
         return self.q.get((state,action),0.0)
     
-    def choose_action(self, state, return_q=False):
+    def act(self, state, return_q=False):
         # Get quality of all action at the current state
         q = [self.getQ(state, a) for a in self.actions]
         # Get the highest q
@@ -47,7 +47,7 @@ class QLearn:
             return action, q
         return action
 
-    def learn(self, state, action, reward, new_state):
+    def learn(self, state, action, reward, new_state, done):
         '''
         Q-learning:
             td_target = reward + self.gamma*max(Q(new_state))
