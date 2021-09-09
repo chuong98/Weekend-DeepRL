@@ -30,7 +30,7 @@ class BaseBuffer(object):
                     newState=self.newStates[index],
                     isFinal=self.finals[index])
 
-    def addMemory(self, state, action, reward, newState, isFinal) :
+    def addMemory(self, state, action, reward, newState, isFinal, **kwargs) :
         if (self.counter >= self.capacity - 1) :
             self.counter = 0
         if (len(self.states) > self.capacity) :

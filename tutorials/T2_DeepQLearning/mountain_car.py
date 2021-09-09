@@ -6,12 +6,12 @@ env = dict(
 
 agent=dict(type='DQN',
     network=dict(type='MLPNetwork', 
-                channels=[100,50],
-                activation_cfg='silu'),
+                hidden_layers=[50,30],
+                act_cfg=dict(type='silu')),
     buffer= dict(type='BaseBuffer', 
                 capacity=8000, 
                 batch_size=256),
-    optim_lr=1e-3,
+    optimizer= dict(type='Adam',lr=1e-3),
     gamma=0.995,
     explore_rate=0.1,
     network_iters=100            
