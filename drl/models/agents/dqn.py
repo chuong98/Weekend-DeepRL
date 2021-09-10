@@ -5,24 +5,25 @@ from torch import nn
 import torch.nn.functional as F
 from mmcv.runner.optimizer import build_optimizer
 
-from ..builder import (AGENT, build_buffer, build_network)
+from ..builder import (AGENTS, build_buffer, build_network)
 
-@AGENT.register_module()
+@AGENTS.register_module()
 class DQN:
     def __init__(self, 
                 num_states,
                 num_actions,
-                network=dict(type='MLPNetwork'),
+                network=dict(type='MLP'),
                 buffer = dict(capacity=2000, batch_size=128),
                 optimizer=dict(type='Adam', lr=1e-3),
                 gamma=0.9,
                 explore_rate=0.1,
                 network_iters=100,
                 ):
+        super().__init__()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         network_cfg = network.copy()
-        network_cfg['num_states']=num_states
-        network_cfg['num_actions']=num_actions
+        network_cfg['in_channels']=num_states
+        network_cfg['out_channels']=num_actions
         # The q_network is used for calculating the current Q-value
         self.q_net = build_network(network_cfg).to(self.device)
         # The target_network is used to compute the next Q-values

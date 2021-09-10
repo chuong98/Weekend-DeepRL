@@ -3,6 +3,7 @@ import warnings
 import statistics
 import numpy as np
 import torch
+import os.path as osp 
 
 import gym
 from gym.wrappers import Monitor
@@ -31,7 +32,7 @@ def train_agent(cfg):
     env = gym.make(cfg.env.type)
     # Record the experiments
     if cfg.env.get('monitor_freq',0) >0:
-        env = Monitor(env, f'./cache/{cfg.env.type}_{cfg.agent.type}', 
+        env = Monitor(env, osp.join(cfg.work_dir,'monitor'), 
                     force=True,
                     video_callable=lambda count: count % cfg.env.monitor_freq == 0)
     
@@ -39,18 +40,18 @@ def train_agent(cfg):
     cfg.agent.num_actions = env.action_space.n
     cfg.agent.num_states = env.observation_space.shape[0]
     agent = build_agent(cfg.agent)
-    
+
     # Experiments parameters
     max_number_of_steps = env.spec.max_episode_steps #200
     solved_reward_thr = env.spec.reward_threshold
-    num_episodes = cfg.train_cfg.num_episodes
+    num_episodes = cfg.num_episodes
     reward_list = []
 
     for i_episode in tqdm(range(num_episodes)):
         state = env.reset()
         episode_reward = 0
 
-        for t in range(max_number_of_steps):
+        for _ in range(max_number_of_steps):
             if cfg.env.render: env.render()
 
             # Pick an action based on the current state
@@ -75,4 +76,6 @@ def train_agent(cfg):
             print(f"Solved at Episode:{i_episode} - with mean reward: {mean_reward}")
             break
 
-        # TODO: Add save cfg, checkpoints
+        # TODO: Add save checkpoints, logs
+    
+    env.close()

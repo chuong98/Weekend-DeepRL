@@ -138,3 +138,4 @@ dmypy.json
 cython_debug/
 
 cache/
+work_dirs/

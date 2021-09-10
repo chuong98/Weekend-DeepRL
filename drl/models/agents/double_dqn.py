@@ -1,9 +1,9 @@
 
 import torch
-from ..builder import AGENT
+from ..builder import AGENTS
 from .dqn import DQN 
 
-@AGENT.register_module()
+@AGENTS.register_module()
 class DDQN(DQN):
     """ Double DQN """
     def get_target(self, next_states, rewards, isFinals):

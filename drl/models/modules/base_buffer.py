@@ -1,9 +1,9 @@
 import numpy as np 
 import torch
 from operator import itemgetter
-from ..builder import BUFFER
+from ..builder import BUFFERS
 
-@BUFFER.register_module()
+@BUFFERS.register_module()
 class BaseBuffer(object):
     """
     This class provides an abstraction to store the [s, a, r, a'] elements of each iteration.
