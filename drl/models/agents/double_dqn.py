@@ -12,7 +12,7 @@ class DDQN(DQN):
             q_next  = self.q_net(next_states)
             action_max_idxes = q_next.argmax(dim=1).view(-1,1)
             # action evaluation: using target network
-            q_next = self.target_net(next_states) 
+            q_next = self.t_net(next_states) 
             q_next_max = q_next.gather(1,action_max_idxes)
             # target
             q_target = rewards + self.gamma* (1-isFinals) *q_next_max.squeeze()

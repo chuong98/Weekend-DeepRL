@@ -52,10 +52,15 @@ class BaseBuffer(object):
         current_size = self.getCurrentSize()
         if self.batch_size < current_size :
             indices = np.random.randint(0,current_size, self.batch_size)
+            minibatch = (torch.Tensor(itemgetter(*indices)(self.states)).to(device),
+                torch.Tensor(itemgetter(*indices)(self.actions)).to(device),
+                torch.Tensor(itemgetter(*indices)(self.rewards)).to(device),
+                torch.Tensor(itemgetter(*indices)(self.newStates)).to(device),
+                torch.Tensor(itemgetter(*indices)(self.finals)).to(device))
         else:
-            indices = np.arange(current_size)
-        return (torch.FloatTensor(itemgetter(*indices)(self.states), device=device),
-                torch.LongTensor(itemgetter(*indices)(self.actions), device=device),
-                torch.FloatTensor(itemgetter(*indices)(self.rewards), device=device),
-                torch.FloatTensor(itemgetter(*indices)(self.newStates), device=device),
-                torch.FloatTensor(itemgetter(*indices)(self.finals), device=device))
+            minibatch = (torch.Tensor(self.states).to(device),
+                torch.Tensor(self.actions).to(device),
+                torch.Tensor(self.rewards).to(device),
+                torch.Tensor(self.newStates).to(device),
+                torch.Tensor(self.finals).to(device))
+        return minibatch

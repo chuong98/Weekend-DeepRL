@@ -30,6 +30,8 @@ def set_random_seed(seed, deterministic=False):
 def train_agent(cfg):
     # Build Environment
     env = gym.make(cfg.env.type)
+    if 'seed' in cfg.keys(): env.seed(cfg.seed) 
+    
     # Record the experiments
     if cfg.env.get('monitor_freq',0) >0:
         env = Monitor(env, osp.join(cfg.work_dir,'monitor'), 
@@ -37,7 +39,8 @@ def train_agent(cfg):
                     video_callable=lambda count: count % cfg.env.monitor_freq == 0)
     
     # Build agent
-    cfg.agent.num_actions = env.action_space.n
+    is_discrete = isinstance(env.action_space.sample(), int) # Is Action Space discrete 
+    cfg.agent.num_actions = env.action_space.n if is_discrete else env.action_space.shape[0]
     cfg.agent.num_states = env.observation_space.shape[0]
     agent = build_agent(cfg.agent)
 
@@ -64,18 +67,20 @@ def train_agent(cfg):
             agent.learn(state, action, reward, new_state, done)
             state = new_state
             episode_reward += reward
-
             if done:
                 break                        
         
+        reward_list.append(episode_reward)
         # Consider the problem is solved if getting average reward 
         # above the threshold over 100 consecutive trials.
         num_episodes_solved = cfg.env.get('num_episodes_solved',100)
-        mean_reward = statistics.mean(reward_list[-num_episodes_solved:])
-        if mean_reward > solved_reward_thr: 
-            print(f"Solved at Episode:{i_episode} - with mean reward: {mean_reward}")
-            break
+        if num_episodes_solved > 0 and i_episode > num_episodes_solved:
+            mean_reward = sum(reward_list[-num_episodes_solved:])/num_episodes_solved
+            if mean_reward > solved_reward_thr: 
+                break
 
         # TODO: Add save checkpoints, logs
-    
+
+    mean_reward = sum(reward_list[-num_episodes_solved:])/num_episodes_solved
+    print(f"Finished at Episode:{i_episode} - with mean reward: {mean_reward}")
     env.close()

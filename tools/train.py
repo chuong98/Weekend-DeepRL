@@ -38,6 +38,9 @@ def parse_args():
     return args
 
 def setup_exp(args):
+    """
+        Some lengthy setup (log info, resume ckpt) from mmcv config: 
+    """
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)

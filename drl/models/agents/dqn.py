@@ -42,8 +42,11 @@ class DQN:
         self.optimizer = build_optimizer(self.q_net, optimizer)
 
     def act(self, state):
-        state = torch.FloatTensor(state, device=self.device).unsqueeze(0)
-        action_value = self.q_net(state)
+        try:
+            input = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+        except:
+            import pdb; pdb.set_trace()
+        action_value = self.q_net(input)
         action_prob = F.softmax(action_value, dim=1).cpu().data.numpy().squeeze()
         if np.random.randn() <= self.explore_rate:# random policy
             action = np.random.choice(np.arange(len(action_prob)), p=action_prob)
@@ -68,7 +71,7 @@ class DQN:
         (states, actions, rewards, next_states, are_final) = mini_batch
 
         #compute the loss
-        q_eval = self.q_net(states).gather(1,actions.view(-1,1))
+        q_eval = self.q_net(states).gather(1,actions.long().view(-1,1))
         q_target = self.get_target(next_states, rewards, are_final)
         loss = self.loss_func(q_eval, q_target)
 

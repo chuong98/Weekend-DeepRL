@@ -17,10 +17,10 @@ class MLPNet(nn.Module):
             self.fc_layers.append(nn.Linear(in_chans, channel))
         self.out = nn.Linear(hidden_layers[-1],out_channels)
         self.act = build_activation_layer(act_cfg)
-        # self._init_weights()
+        self._init_weights()
 
     def _init_weights(self):
-        for fc in self.fc_layers():
+        for fc in self.fc_layers:
             fc.weight.data.normal_(0,0.1)
         self.out.weight.data.normal_(0,0.1)
 
