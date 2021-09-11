@@ -42,10 +42,8 @@ class DQN:
         self.optimizer = build_optimizer(self.q_net, optimizer)
 
     def act(self, state):
-        try:
-            input = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-        except:
-            import pdb; pdb.set_trace()
+        input = torch.Tensor(state).unsqueeze(0).to(self.device)
+
         action_value = self.q_net(input)
         action_prob = F.softmax(action_value, dim=1).cpu().data.numpy().squeeze()
         if np.random.randn() <= self.explore_rate:# random policy
@@ -68,11 +66,12 @@ class DQN:
 
         #sample batch from memory
         mini_batch = self.memory.getMiniBatch(device=self.device)
-        (states, actions, rewards, next_states, are_final) = mini_batch
+        (states, actions, rewards, next_states, finals) = mini_batch
 
         #compute the loss
         q_eval = self.q_net(states).gather(1,actions.long().view(-1,1))
-        q_target = self.get_target(next_states, rewards, are_final)
+        with torch.no_grad():
+            q_target = self.get_target( rewards, next_states, finals)
         loss = self.loss_func(q_eval, q_target)
 
         #backward and optimize the network 
@@ -80,11 +79,13 @@ class DQN:
         loss.backward()
         self.optimizer.step()
 
-    def get_target(self, next_states, rewards, isFinals):
-        with torch.no_grad():
-            q_next = self.t_net(next_states)
-            q_next_max = q_next.max(dim=1)[0]
-            q_target = rewards + self.gamma* (1-isFinals) *q_next_max
+    def get_target(self, rewards, next_states, finals):
+        """
+            Bootstrap the target 
+        """ 
+        q_next = self.t_net(next_states)
+        q_next_max = q_next.max(dim=1)[0]
+        q_target = rewards + self.gamma* (1-finals) *q_next_max
         return q_target.unsqueeze(1) # Output [batch_size, 1]
 
 

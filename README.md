@@ -18,6 +18,7 @@ conda install pytorch torchvision cudatoolkit=10.2 -c pytorch
 pip install gym 
 pip install gym[all] #Install the environment dependence
 # or pip install cmake 'gym[atari]'
+pip install pybullet
 ``` 
 
 ### 2. Try Gym environment
@@ -44,9 +45,9 @@ env.close()
 ### 3. Algorithms:
 Best viewed in VSCode due to latex rendering.
 1. [Q-Learning](configs/QLearning/Q-learning.md): Introduction to RL with Q-Learning
-2. [Deep Q-Learning (DQN)](configs/DeepQLearning/DQN.md): 
-   + DQN(Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DeepQLearning/dqn_mountain_car.py) 
-   + Double-DQN(AAAI 2016): [code](drl/models/agents/double_dqn.py), [config](configs/DeepQLearning/ddqn_mountain_car.py) 
+2. [Deep Q-Learning (DQN)](configs/DQN/DQN.md): 
+   + DQN(Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
+   + Double-DQN(AAAI 2016): [code](drl/models/agents/double_dqn.py), [config](configs/DQN/ddqn_mountain_car.py) 
    + Priority Experience Replay (ICLR2016)
 3. []
 
@@ -59,6 +60,6 @@ python tools/train.py [path/to/config.py] [--extra_args]
 ```
 For example, to train a Deep Q-Learning (DQN) for mountain car env, use:
 ```bash
-python tools/train.py configs/DeepQLearning/dqn_mountain_car.py
+python tools/train.py configs/DQN/dqn_mountain_car.py
 ```
 The config system and modules are written based on `mmcv` [configs and registry system](https://mmcv.readthedocs.io/en/latest/understand_mmcv.html)

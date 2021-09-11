@@ -1,5 +1,5 @@
 env = dict(
-    type='MountainCarContinuous-v0',
+    type='MountainCar-v0',
     monitor_freq=20,
     render=False,
     num_episodes_solved=100)
@@ -19,19 +19,19 @@ agent=dict(type='DQN',
 
 num_episodes=300
 
-# checkpoint saving
-checkpoint_config = dict(interval=1)
-# yapf:disable
-log_config = dict(
-    interval=100,
-    hooks=[
-        dict(type='TextLoggerHook'),
-        # dict(type='TensorboardLoggerHook')
-    ])
-# yapf:enable
+# # checkpoint saving
+# checkpoint_config = dict(interval=1)
+# # yapf:disable
+# log_config = dict(
+#     interval=100,
+#     hooks=[
+#         dict(type='TextLoggerHook'),
+#         # dict(type='TensorboardLoggerHook')
+#     ])
+# # yapf:enable
 
-# dist_params = dict(backend='nccl')
-log_level = 'INFO'
-load_from = None
-resume_from = None
-# workflow = [('train', 1)]
+# # dist_params = dict(backend='nccl')
+# log_level = 'INFO'
+# load_from = None
+# resume_from = None
+# # workflow = [('train', 1)]
