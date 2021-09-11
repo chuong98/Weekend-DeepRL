@@ -45,11 +45,11 @@ env.close()
 ### 3. Algorithms:
 Best viewed in VSCode due to latex rendering.
 1. [Q-Learning](configs/QLearning/ReadMe.md): Introduction to RL with Q-Learning
-2. [Deep Q-Learning (DQN)](configs/DQN/ReadMe.md): 
+2. [Deep Q-Learning (DQN)](configs/DQN/dqn_tutorial.ipynb): 
    + DQN(Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
    + Double-DQN(AAAI 2016): [code](drl/models/agents/double_dqn.py), [config](configs/DQN/ddqn_mountain_car.py) 
    + Priority Experience Replay (ICLR2016)
-3. [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ReadMe.md)
+3. [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ddpg_tutorial.ipynb)
 
 ### 4. Usage:
 
