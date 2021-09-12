@@ -79,7 +79,6 @@ def setup_exp(args):
 
     return cfg
 
-
 def main():
     args = parse_args()
     cfg = setup_exp(args)

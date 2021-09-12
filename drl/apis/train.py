@@ -1,6 +1,4 @@
 import random
-import warnings
-import statistics
 import numpy as np
 import torch
 import os.path as osp 
@@ -104,7 +102,7 @@ def train_agent(cfg):
             if mean_reward > solved_reward_thr: 
                 break
 
-        # TODO: Add save checkpoints, logs
+        # TODO: Add save checkpoints, logs, evaluate
 
     mean_reward = sum(reward_list[-num_episodes_solved:])/num_episodes_solved
     print(f"Finished at Episode:{i_episode} - with mean reward: {mean_reward}")

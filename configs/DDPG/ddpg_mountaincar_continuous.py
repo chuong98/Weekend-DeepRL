@@ -11,15 +11,14 @@ agent=dict(type='DDPG',
     critic = dict(type='MLPNet', 
                 hidden_layers=[50,30],
                 act_cfg=dict(type='SiLU')),
+    action_noise = dict(std=0.2,noise_clip=0.6,decay_factor=0.999),
     buffer= dict(type='BaseBuffer', 
                 capacity=8000, 
                 batch_size=256),
     actor_optimizer= dict(type='Adam',lr=1e-3),
     critic_optimizer= dict(type='Adam',lr=1e-3),
     gamma=0.995,
-    explore_rate=0.1,
-    policy_noise=0.1,
-    noise_clip=0.3,
+    explore_rate=0.3,
     polyak=0.995,
     start_steps=100,
     )
@@ -27,7 +26,7 @@ agent=dict(type='DDPG',
 num_episodes=300
 
 # checkpoint saving
-checkpoint_config = dict(interval=1)
+checkpoint_config = dict(interval=20)
 # yapf:disable
 log_config = dict(
     interval=100,

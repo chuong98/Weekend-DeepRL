@@ -7,10 +7,11 @@ from torch.nn.modules import activation
 from ..builder import (AGENTS, build_buffer, build_network)
 
 class ActorNet(nn.Module):
-    def __init__(self, network_cfg, policy_noise=0.1,noise_clip=0.3):
+    def __init__(self, network_cfg, std=0.1,noise_clip=0.3, decay_factor=0.9999):
         super().__init__()
-        self.policy_noise = policy_noise
+        self.std = std
         self.noise_clip = noise_clip
+        self.decay_factor=decay_factor
         self.network = build_network(network_cfg)
         self.action_act = nn.Tanh()
 
@@ -25,9 +26,13 @@ class ActorNet(nn.Module):
             we add Gaussian noise and clamp it in a range of values 
             supported by the environment
         """
-        noise = torch.normal(torch.zeros_like(action), self.policy_noise)
+        noise = torch.normal(torch.zeros_like(action), self.std)
         noise = noise.clamp(-self.noise_clip, self.noise_clip)
         return (action + noise).clamp(-1, 1)
+
+    def decay_noise(self):
+        """ reduce the noise magnitude over time"""
+        self.std *=self.decay_factor
 
 class CriticNet(nn.Module):
     def __init__(self, network_cfg):
@@ -48,15 +53,14 @@ class DDPG:
                 num_actions,
                 actor=dict(type='MLP'),
                 critic=dict(type='MLP'),
+                action_noise = dict(std=0.2,noise_clip=0.6,decay_factor=0.999),
                 buffer = dict(capacity=2000, batch_size=128),
                 actor_optimizer=dict(type='Adam', lr=1e-3),
                 critic_optimizer=dict(type='Adam', lr=1e-3),
                 gamma=0.9,
-                explore_rate=0.1,
-                policy_noise=0.1,
-                noise_clip=0.5,
+                explore_rate=0.3,
                 polyak = 0.99,
-                start_steps=200,
+                start_steps=100,
                 ):
         super().__init__()
         self.num_actions = num_actions
@@ -66,8 +70,8 @@ class DDPG:
         actor_cfg = actor.copy()
         actor_cfg['in_channels']=num_states
         actor_cfg['out_channels']=num_actions
-        self.actor = ActorNet(actor_cfg, policy_noise, noise_clip).to(self.device)
-        self.actor_target =  ActorNet(actor_cfg, policy_noise, noise_clip).to(self.device)
+        self.actor = ActorNet(actor_cfg, **action_noise).to(self.device)
+        self.actor_target =  ActorNet(actor_cfg, **action_noise).to(self.device)
         self.actor_optimizer = build_optimizer(self.actor, actor_optimizer)
 
         # The critic and critic target network
@@ -108,6 +112,7 @@ class DDPG:
 
         input = torch.Tensor(state).unsqueeze(0).to(self.device)
         action = self.actor(input, add_noise=is_train)
+        self.actor.decay_noise()
         return action.cpu().detach().numpy().flatten()
     
     def store_transition(self, state, action, reward, new_state, done):
@@ -144,7 +149,7 @@ class DDPG:
 
         # Update target network by polyak
         self.update_target_networks()
-
+        
         self.learn_step_counter+=1
         
     def get_critic_targets(self, rewards, next_states, finals):
