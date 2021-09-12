@@ -1,8 +1,12 @@
 # Reinforcement Leaning Tutorial
 
-This is my personal notes for the course [Udemy Deep Reinforcement Learning 2.0](https://www.udemy.com/course/deep-reinforcement-learning/).
+## About
+Weekend Deep Reinforcement Learning (DRL) is a self-study of DRL in my free time. 
+DRL is very easy, especially when you already have a bit background in Control and Deep Learning. 
+Even without the background, the concept is still very simple, so why not study and have fun with it.
 
-In addition, I also update the code from [Basic Reinforcement Learning](https://github.com/vmayoral/basic_reinforcement_learning), using Pytorch instead of Keras.
+My implementation aims to provides a minimal code with summary short notes for theory.
+The code's modules are based on [MMCV](https://github.com/open-mmlab/mmcv) framework, thus very easy to adopt, adjust components by changing the config files.
 
 Other great resource for self-study RL:
 + https://simoninithomas.github.io/deep-rl-course/#syllabus
@@ -49,8 +53,9 @@ Best viewed in VSCode due to latex rendering.
    + DQN(Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
    + Double-DQN(AAAI 2016): [code](drl/models/agents/double_dqn.py), [config](configs/DQN/ddqn_mountain_car.py) 
    + Priority Experience Replay (ICLR2016)
-3. [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ddpg_tutorial.ipynb)
-
+3. [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ddpg_tutorial.ipynb): [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
+4. [Twin Delayed DDPG (TD3-ICML 2018)](configs/TD3/TD3_tutorial.md), [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
+5. 
 ### 4. Usage:
 
 Except the first `Q-Learning` tutorial, that is for RL introduction, all other methods can be easily trained as:
