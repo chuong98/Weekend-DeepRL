@@ -3,16 +3,31 @@ import numpy as np
 import torch
 from torch import nn 
 from mmcv.runner.optimizer import build_optimizer
+from torch.nn.modules import activation
 from ..builder import (AGENTS, build_buffer, build_network)
 
 class ActorNet(nn.Module):
-    def __init__(self, network_cfg):
+    def __init__(self, network_cfg, policy_noise=0.1,noise_clip=0.3):
+        super().__init__()
+        self.policy_noise = policy_noise
+        self.noise_clip = noise_clip
         self.network = build_network(network_cfg)
         self.action_act = nn.Tanh()
 
-    def forward(self,states):
-        logit = self.network(states)
-        return self.action_act(logit)
+    def forward(self,states, add_noise=False):
+        action = self.action_act(self.network(states))
+        if add_noise:
+            action = self.add_noise(action)
+        return action 
+
+    def add_noise(self,action):
+        """
+            we add Gaussian noise and clamp it in a range of values 
+            supported by the environment
+        """
+        noise = torch.normal(torch.zeros_like(action), self.policy_noise)
+        noise = noise.clamp(-self.noise_clip, self.noise_clip)
+        return (action + noise).clamp(-1, 1)
 
 class CriticNet(nn.Module):
     def __init__(self, network_cfg):
@@ -38,10 +53,9 @@ class DDPG:
                 critic_optimizer=dict(type='Adam', lr=1e-3),
                 gamma=0.9,
                 explore_rate=0.1,
-                network_iters=2,
-                policy_noise=0.2,
+                policy_noise=0.1,
                 noise_clip=0.5,
-                momentum = 0.005,
+                polyak = 0.99,
                 start_steps=200,
                 ):
         super().__init__()
@@ -52,8 +66,8 @@ class DDPG:
         actor_cfg = actor.copy()
         actor_cfg['in_channels']=num_states
         actor_cfg['out_channels']=num_actions
-        self.actor = ActorNet(actor_cfg).to(self.device)
-        self.actor_target =  ActorNet(actor_cfg).to(self.device)
+        self.actor = ActorNet(actor_cfg, policy_noise, noise_clip).to(self.device)
+        self.actor_target =  ActorNet(actor_cfg, policy_noise, noise_clip).to(self.device)
         self.actor_optimizer = build_optimizer(self.actor, actor_optimizer)
 
         # The critic and critic target network
@@ -72,10 +86,7 @@ class DDPG:
         # Agent parameters
         self.gamma = gamma
         self.explore_rate = explore_rate
-        self.network_iters = network_iters
-        self.policy_noise = policy_noise
-        self.noise_clip = noise_clip
-        self.tau = momentum
+        self.polyak = polyak
         self.start_steps = start_steps
         self.learn_step_counter = 0
                 
@@ -96,20 +107,9 @@ class DDPG:
             return np.random.uniform(low=-1.0,high=1.0,size=self.num_actions)
 
         input = torch.Tensor(state).unsqueeze(0).to(self.device)
-        action = self.actor(input)
-        if is_train:
-            action = self.add_noise_to_action(action)
-        return action.cpu().numpy().flatten()
+        action = self.actor(input, add_noise=is_train)
+        return action.cpu().detach().numpy().flatten()
     
-    def add_noise_to_action(self,action):
-        """
-            we add Gaussian noise and clamp it in a range of values 
-            supported by the environment
-        """
-        noise = torch.normal(torch.zeros_like(action), self.policy_noise)
-        noise = noise.clamp(-self.noise_clip, self.noise_clip)
-        return (action + noise).clamp(-1, 1)
-
     def store_transition(self, state, action, reward, new_state, done):
         self.memory.addMemory(state, action, reward, new_state, done)
 
@@ -142,7 +142,7 @@ class DDPG:
         actor_loss.backward()
         self.actor_optimizer.step()
 
-        # Update target network by momentum
+        # Update target network by polyak
         self.update_target_networks()
 
         self.learn_step_counter+=1
@@ -151,25 +151,22 @@ class DDPG:
         """
             Bootstrap the target 
         """
-        # Step 1: Predict the next actions using the target actor network
-        next_actions = self.actor_target(next_states)
+        # Predict the next actions using the target actor network
+        next_actions = self.actor_target(next_states, add_noise=True)
 
-        # Step 2: We add Gaussian noise to this next action a’ 
-        next_actions = self.add_noise_to_action(next_actions)
-
-        # Step 3: The two Critic targets take each the couple (s’, a’) as input
+        # The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs
         q_next = self.critic_target(next_states, next_actions)
 
         # Step 4: We get the final target of the two Critic models, 
         # which is: Qt = r + γ * q_next, where γ is the discount factor
-        q_target = rewards + self.gamma* (1-finals) *q_next
+        q_target = rewards + self.gamma* (1-finals) *q_next.squeeze()
 
-        return q_target
+        return q_target.unsqueeze(1) # Output [batch_size, 1]
 
     def update_target_networks(self):
         for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
-            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
+            target_param.data.copy_(self.polyak * target_param.data + (1 - self.polyak) * param.data)
 
         for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-            target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data) 
+            target_param.data.copy_(self.polyak * target_param.data + (1 - self.polyak) * param.data) 
