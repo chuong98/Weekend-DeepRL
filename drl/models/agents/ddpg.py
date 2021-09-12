@@ -2,41 +2,35 @@
 import numpy as np 
 import torch
 from torch import nn 
-import torch.nn.functional as F
 from mmcv.runner.optimizer import build_optimizer
-
 from ..builder import (AGENTS, build_buffer, build_network)
 
-class Actor(nn.Module):
-    def __init__(self, network_cfg,max_action):
+class ActorNet(nn.Module):
+    def __init__(self, network_cfg):
         self.network = build_network(network_cfg)
-        self.max_action = max_action
+        self.action_act = nn.Tanh()
 
     def forward(self,states):
         logit = self.network(states)
-        action = self.max_action * logit.tanh()
-        return action 
+        return self.action_act(logit)
 
-class TwinCritic(nn.Module):
+class CriticNet(nn.Module):
     def __init__(self, network_cfg):
-        super(TwinCritic, self).__init__()
-        self.critic_1 = build_network(network_cfg)
-        self.critic_2 = build_network(network_cfg)
-    
+        super().__init__()
+        self.network = build_network(network_cfg)
+
     def forward(self, states, actions):
         x = torch.cat([states, actions], dim=1)
-        return self.critic_1(x), self.critic_2(x)
-
-    def forward_q1(self, states, actions):
-        x = torch.cat([states, actions], dim=1)
-        return self.critic_1(x)
+        return self.network(x)
 
 @AGENTS.register_module()
-class TD3:
+class DDPG:
+    """
+        Deep Deterministic Policy Gradient.
+    """
     def __init__(self, 
                 num_states,
                 num_actions,
-                action_range,
                 actor=dict(type='MLP'),
                 critic=dict(type='MLP'),
                 buffer = dict(capacity=2000, batch_size=128),
@@ -47,26 +41,27 @@ class TD3:
                 network_iters=2,
                 policy_noise=0.2,
                 noise_clip=0.5,
-                max_action=1,
                 momentum = 0.005,
+                start_steps=200,
                 ):
         super().__init__()
+        self.num_actions = num_actions
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
         # The actor and actor target network
         actor_cfg = actor.copy()
         actor_cfg['in_channels']=num_states
         actor_cfg['out_channels']=num_actions
-        self.actor = Actor(actor_cfg,max_action).to(self.device)
-        self.actor_target = Actor(actor_cfg,max_action).to(self.device)
+        self.actor = ActorNet(actor_cfg).to(self.device)
+        self.actor_target =  ActorNet(actor_cfg).to(self.device)
         self.actor_optimizer = build_optimizer(self.actor, actor_optimizer)
 
         # The critic and critic target network
         critic_cfg = critic.copy()
         critic_cfg['in_channels']=num_states+num_actions
         critic_cfg['out_channels']=1
-        self.critic = TwinCritic(critic_cfg).to(self.device)
-        self.critic_target = TwinCritic(critic_cfg).to(self.device)
+        self.critic = CriticNet(critic_cfg).to(self.device)
+        self.critic_target = CriticNet(critic_cfg).to(self.device)
 
         # The critic and critic target twin-networks
         self.critic_optimizer = build_optimizer(self.critic, critic_optimizer)
@@ -81,7 +76,7 @@ class TD3:
         self.policy_noise = policy_noise
         self.noise_clip = noise_clip
         self.tau = momentum
-        self.max_action = max_action
+        self.start_steps = start_steps
         self.learn_step_counter = 0
                 
         # Network optimizer
@@ -92,11 +87,29 @@ class TD3:
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.critic_target.load_state_dict(self.critic.state_dict())
 
-    def act(self,state):
+    def act(self,state, is_train=False):
+        # To improve exploration at the start of training,
+        # in the first start_steps, the agent takes actions 
+        # which are uniformly sampled from [-1,1]
+        if is_train and (self.learn_step_counter < self.start_steps) \
+            and (np.random.randn() <= self.explore_rate):# random policy
+            return np.random.uniform(low=-1.0,high=1.0,size=self.num_actions)
+
         input = torch.Tensor(state).unsqueeze(0).to(self.device)
         action = self.actor(input)
+        if is_train:
+            action = self.add_noise_to_action(action)
         return action.cpu().numpy().flatten()
     
+    def add_noise_to_action(self,action):
+        """
+            we add Gaussian noise and clamp it in a range of values 
+            supported by the environment
+        """
+        noise = torch.normal(torch.zeros_like(action), self.policy_noise)
+        noise = noise.clamp(-self.noise_clip, self.noise_clip)
+        return (action + noise).clamp(-1, 1)
+
     def store_transition(self, state, action, reward, new_state, done):
         self.memory.addMemory(state, action, reward, new_state, done)
 
@@ -109,10 +122,10 @@ class TD3:
         (states, actions, rewards, next_states, finals) = mini_batch
 
         # compute the loss for the critic networks
-        q1_eval, q2_eval = self.critic(states, actions)
+        q_eval = self.critic(states, actions)
         with torch.no_grad():
             q_target = self.get_critic_targets(rewards, next_states, finals)
-        critic_loss = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
+        critic_loss = self.loss_func(q_eval, q_target) 
         
         # backward and optimize the critic network 
         self.critic_optimizer.zero_grad()
@@ -120,18 +133,17 @@ class TD3:
         self.critic_optimizer.step()
 
         #update the target networks once every network_inters 
-        if self.learn_step_counter % self.network_iters ==0:
-            # Actor Loss
-            q_val = self.critic.forward_q1(states, self.actor(states))
-            actor_loss = -q_val.mean() # We want to maximize the q_val
-            
-            # backward and optimize the actor network
-            self.actor_optimizer.zero_grad()
-            actor_loss.backward()
-            self.actor_optimizer.step()
+        # Actor Loss: We want to maximize the expected value of q_val
+        q_val = self.critic(states, self.actor(states))
+        actor_loss = -q_val.mean() 
+        
+        # backward and optimize the actor network
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        self.actor_optimizer.step()
 
-            # Update target network by momentum
-            self.update_target_networks()
+        # Update target network by momentum
+        self.update_target_networks()
 
         self.learn_step_counter+=1
         
@@ -143,21 +155,15 @@ class TD3:
         next_actions = self.actor_target(next_states)
 
         # Step 2: We add Gaussian noise to this next action a’ 
-        # and we clamp it in a range of values supported by the environment
-        noise = torch.normal(torch.zeros_like(next_actions), self.policy_noise)
-        noise = noise.clamp(-self.noise_clip, self.noise_clip)
-        next_actions = (next_actions + noise).clamp(-self.max_action, self.max_action)
+        next_actions = self.add_noise_to_action(next_actions)
 
         # Step 3: The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs
-        q1_target, q2_target = self.critic_target(next_states, next_actions)
+        q_next = self.critic_target(next_states, next_actions)
 
-        # Step 4: We pick the minimum of these two Q-values to get the target of the two Critic
-        q_target_min = torch.min(q1_target, q2_target)
-
-        # Step 5: We get the final target of the two Critic models, 
-        # which is: Qt = r + γ * min(Qt1, Qt2), where γ is the discount factor
-        q_target = rewards + self.gamma* (1-finals) *q_target_min
+        # Step 4: We get the final target of the two Critic models, 
+        # which is: Qt = r + γ * q_next, where γ is the discount factor
+        q_target = rewards + self.gamma* (1-finals) *q_next
 
         return q_target
 

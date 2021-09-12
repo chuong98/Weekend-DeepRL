@@ -4,7 +4,6 @@ import torch
 from torch import nn 
 import torch.nn.functional as F
 from mmcv.runner.optimizer import build_optimizer
-
 from ..builder import (AGENTS, build_buffer, build_network)
 
 @AGENTS.register_module()
@@ -41,12 +40,12 @@ class DQN:
         self.loss_func = nn.MSELoss() 
         self.optimizer = build_optimizer(self.q_net, optimizer)
 
-    def act(self, state):
+    def act(self, state, is_train=False):
         input = torch.Tensor(state).unsqueeze(0).to(self.device)
 
         action_value = self.q_net(input)
         action_prob = F.softmax(action_value, dim=1).cpu().data.numpy().squeeze()
-        if np.random.randn() <= self.explore_rate:# random policy
+        if is_train and (np.random.randn() <= self.explore_rate):# random policy
             action = np.random.choice(np.arange(len(action_prob)), p=action_prob)
         else: # Greedy policy
             action = np.argmax(action_prob)

@@ -8,13 +8,13 @@ from mmcv.runner.optimizer import build_optimizer
 from ..builder import (AGENTS, build_buffer, build_network)
 
 class Actor(nn.Module):
-    def __init__(self, network_cfg,max_action):
+    def __init__(self, network_cfg,action_mag):
         self.network = build_network(network_cfg)
-        self.max_action = max_action
+        self.action_mag = action_mag
 
     def forward(self,states):
         logit = self.network(states)
-        action = self.max_action * logit.tanh()
+        action = self.action_mag * logit.tanh()
         return action 
 
 class TwinCritic(nn.Module):
@@ -47,7 +47,7 @@ class TD3:
                 network_iters=2,
                 policy_noise=0.2,
                 noise_clip=0.5,
-                max_action=1,
+                action_mag=1,
                 momentum = 0.005,
                 ):
         super().__init__()
@@ -57,8 +57,8 @@ class TD3:
         actor_cfg = actor.copy()
         actor_cfg['in_channels']=num_states
         actor_cfg['out_channels']=num_actions
-        self.actor = Actor(actor_cfg,max_action).to(self.device)
-        self.actor_target = Actor(actor_cfg,max_action).to(self.device)
+        self.actor = Actor(actor_cfg,action_mag).to(self.device)
+        self.actor_target = Actor(actor_cfg,action_mag).to(self.device)
         self.actor_optimizer = build_optimizer(self.actor, actor_optimizer)
 
         # The critic and critic target network
@@ -81,7 +81,7 @@ class TD3:
         self.policy_noise = policy_noise
         self.noise_clip = noise_clip
         self.tau = momentum
-        self.max_action = max_action
+        self.action_mag = action_mag
         self.learn_step_counter = 0
                 
         # Network optimizer
@@ -146,7 +146,7 @@ class TD3:
         # and we clamp it in a range of values supported by the environment
         noise = torch.normal(torch.zeros_like(next_actions), self.policy_noise)
         noise = noise.clamp(-self.noise_clip, self.noise_clip)
-        next_actions = (next_actions + noise).clamp(-self.max_action, self.max_action)
+        next_actions = (next_actions + noise).clamp(-self.action_mag, self.action_mag)
 
         # Step 3: The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs

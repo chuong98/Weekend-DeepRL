@@ -6,6 +6,7 @@ import torch
 import os.path as osp 
 
 import gym
+from gym.spaces import Discrete
 from gym.wrappers import Monitor
 from tqdm import tqdm
 from drl.models import build_agent
@@ -31,18 +32,11 @@ def train_agent(cfg):
     # Build Environment
     env = gym.make(cfg.env.type)
     if 'seed' in cfg.keys(): env.seed(cfg.seed) 
-    
     # Record the experiments
     if cfg.env.get('monitor_freq',0) >0:
         env = Monitor(env, osp.join(cfg.work_dir,'monitor'), 
                     force=True,
                     video_callable=lambda count: count % cfg.env.monitor_freq == 0)
-    
-    # Build agent
-    is_discrete = isinstance(env.action_space.sample(), int) # Is Action Space discrete 
-    cfg.agent.num_actions = env.action_space.n if is_discrete else env.action_space.shape[0]
-    cfg.agent.num_states = env.observation_space.shape[0]
-    agent = build_agent(cfg.agent)
 
     # Experiments parameters
     max_number_of_steps = env.spec.max_episode_steps #200
@@ -50,18 +44,49 @@ def train_agent(cfg):
     num_episodes = cfg.num_episodes
     reward_list = []
 
+    # Get some infor about action/observation space
+    is_continuous_action = not isinstance(env.action_space, Discrete)
+    is_continuous_state  = not isinstance(env.observation_space, Discrete)
+    if is_continuous_action:
+        # Mean and Mag values for normalizing the action into range [-1,1]
+        action_mean = 0.5*(env.action_space.high + env.action_space.low)
+        action_mag  = 0.5*(env.action_space.high - env.action_space.low)
+    if is_continuous_state:
+        # Mean and Mag values for normalizing the state into range [-1,1]
+        state_mean = 0.5*(env.observation_space.high + env.observation_space.low)
+        state_mag  = 0.5*(env.observation_space.high - env.observation_space.low)
+
+    # Build agent
+    cfg.agent.num_states = env.observation_space.shape[0] if is_continuous_state else env.observation_space.n
+    cfg.agent.num_actions = env.action_space.shape[0] if is_continuous_action else env.action_space.n
+    agent = build_agent(cfg.agent)
+
+    # Experiment loop
     for i_episode in tqdm(range(num_episodes)):
         state = env.reset()
         episode_reward = 0
+        
+        if is_continuous_state:
+            # normalize the state to range [-1,1]
+            state = (state - state_mean)/state_mag
 
         for _ in range(max_number_of_steps):
             if cfg.env.render: env.render()
 
             # Pick an action based on the current state
-            action = agent.act(state)
-            
+            action = agent.act(state, is_train=True)
+            if is_continuous_action:
+                # Map the action (returned by agent) from [-1,1] 
+                # to the real world's physical range
+                real_action = action_mean + action_mag*action
+            else:
+                real_action = action
+
             # Execute the action and get feedback
-            new_state, reward, done, info = env.step(action)
+            new_state, reward, done, info = env.step(real_action)
+            if is_continuous_state:
+                # normalize the state to range [-1,1]
+                new_state = (new_state - state_mean)/state_mag
 
             # Learn with new experience
             agent.learn(state, action, reward, new_state, done)

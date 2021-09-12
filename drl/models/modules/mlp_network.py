@@ -9,7 +9,8 @@ class MLPNet(nn.Module):
                 in_channels, 
                 out_channels, 
                 hidden_layers=[50,30], 
-                act_cfg=dict(type='SiLU')):
+                act_cfg=dict(type='SiLU'),
+                ):
         super().__init__()
         self.fc_layers = nn.ModuleList()
         for i,channel in enumerate(hidden_layers):
