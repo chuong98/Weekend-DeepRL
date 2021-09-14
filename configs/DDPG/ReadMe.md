@@ -47,5 +47,6 @@
 python tools/train.py configs/DDPG/ddpg_mountaincar_continuous.py
 ```
 Result after training 200 episodes:
-<img src="Fig/ddpg_mtcar_cont_ep200.gif" width="300px" class="center" />
+
+<img src="Fig/ddpg_mtcar_cont_ep200.gif" width="300px" />
 
