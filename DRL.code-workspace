@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../miniconda3/envs/RL/lib/python3.8/site-packages/mmcv"
+		}
+	],
+	"settings": {}
+}
