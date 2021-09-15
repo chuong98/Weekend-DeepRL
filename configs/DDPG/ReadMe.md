@@ -42,7 +42,7 @@
 ### 4. DDPG Pseudo Code
 <p float="center">
   <img src="Fig/DDPG_diag.png" width="45%" class="left" />
-  <img src="Fig/DDPG_pseudo.png" width="40%" class="right" />
+  <img src="Fig/DDPG_pseudo.png" width="45%" class="right" />
 </p>
 **To train DDPG agent for Mountain Car Continous problem, do:**
 ```bash
