@@ -57,7 +57,8 @@ Best viewed in VSCode due to latex rendering.
    + [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ReadMe.pdf): [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
    + [Twin Delayed DDPG (TD3 - ICML 2018)](configs/TD3/ReadMe.pdf): [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
    + [Soft Actor-Critic (SAC - ICML 2018)](config/SAC/README.md)
-4. 
+
+
 ### 4. Usage:
 
 Except the first `Q-Learning` tutorial, that is for RL introduction, all other methods can be easily trained as:

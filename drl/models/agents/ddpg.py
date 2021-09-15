@@ -3,7 +3,6 @@ import numpy as np
 import torch
 from torch import nn 
 from mmcv.runner.optimizer import build_optimizer
-from torch.nn.modules import activation
 from ..builder import (AGENTS, build_buffer, build_network)
 
 class ActorNet(nn.Module):
