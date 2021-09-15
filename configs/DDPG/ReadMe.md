@@ -44,7 +44,8 @@
   <img src="Fig/DDPG_diag.png" width="45%" class="left" />
   <img src="Fig/DDPG_pseudo.png" width="45%" class="right" />
 </p>
-**To train DDPG agent for Mountain Car Continous problem, do:**
+
+**To train DDPG agent for Mountain Car Continous problem, do**:
 
 ```bash
 python tools/train.py configs/DDPG/ddpg_mountaincar_continuous.py
