@@ -40,9 +40,10 @@
   + For testing, we stricly follow the policy, and do not add noise to the actions. 
 
 ### 4. DDPG Pseudo Code
-<img src="Fig/DDPG_diag.png" width="45%" class="left" />
-<img src="Fig/DDPG_pseudo.png" width="45%" class="right" />
-
+<p float="center">
+  <img src="Fig/DDPG_diag.png" width="45%" class="left" />
+  <img src="Fig/DDPG_pseudo.png" width="40%" class="right" />
+</p>
 **To train DDPG agent for Mountain Car Continous problem, do:**
 ```bash
 python tools/train.py configs/DDPG/ddpg_mountaincar_continuous.py
