@@ -7,7 +7,7 @@ from torch.nn.modules import activation
 from ..builder import (AGENTS, build_buffer, build_network)
 
 class ActorNet(nn.Module):
-    def __init__(self, network_cfg, std=0.1,noise_clip=0.3, decay_factor=0.9999):
+    def __init__(self, network_cfg, std=0.1, noise_clip=0.3, decay_factor=0.9999):
         super().__init__()
         self.std = std
         self.noise_clip = noise_clip
@@ -27,7 +27,8 @@ class ActorNet(nn.Module):
             supported by the environment
         """
         noise = torch.normal(torch.zeros_like(action), self.std)
-        noise = noise.clamp(-self.noise_clip, self.noise_clip)
+        if self.noise_clip:
+            noise = noise.clamp(-self.noise_clip, self.noise_clip)
         return (action + noise).clamp(-1, 1)
 
     def decay_noise(self):
@@ -71,6 +72,7 @@ class DDPG:
         actor_cfg['in_channels']=num_states
         actor_cfg['out_channels']=num_actions
         self.actor = ActorNet(actor_cfg, **action_noise).to(self.device)
+        self.actor.noise_clip = None # We don't do noise clip for actor network
         self.actor_target =  ActorNet(actor_cfg, **action_noise).to(self.device)
         self.actor_optimizer = build_optimizer(self.actor, actor_optimizer)
 

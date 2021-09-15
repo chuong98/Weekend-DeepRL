@@ -49,12 +49,12 @@ env.close()
 ### 3. Algorithms:
 Best viewed in VSCode due to latex rendering.
 1. [Q-Learning](configs/QLearning/ReadMe.md): Introduction to RL with Q-Learning
-2. [Deep Q-Learning (DQN)](configs/DQN/dqn_tutorial.ipynb): 
+2. [Deep Q-Learning (DQN)](configs/DQN/ReadMe.md): 
    + DQN(Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
    + Double-DQN(AAAI 2016): [code](drl/models/agents/double_dqn.py), [config](configs/DQN/ddqn_mountain_car.py) 
    + Priority Experience Replay (ICLR2016)
-3. [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ddpg_tutorial.ipynb): [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
-4. [Twin Delayed DDPG (TD3-ICML 2018)](configs/TD3/TD3_tutorial.md): [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
+3. [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ReadMe.pdf): [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
+4. [Twin Delayed DDPG (TD3-ICML 2018)](configs/TD3/ReadMe.pdf): [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
 5. 
 ### 4. Usage:
 

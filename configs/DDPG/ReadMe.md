@@ -55,8 +55,3 @@ Result after training 200 episodes:
 
 <img src="Fig/ddpg_mtcar_cont_ep200.gif" width="300px" />
 
-
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script type="text/x-mathjax-config">
-    MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none" });
-</script>
