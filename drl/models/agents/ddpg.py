@@ -1,11 +1,10 @@
-
 import numpy as np 
 import torch
 from torch import nn 
 from mmcv.runner.optimizer import build_optimizer
 from ..builder import (AGENTS, build_buffer, build_network)
 
-class ActorNet(nn.Module):
+class Actor(nn.Module):
     def __init__(self, network_cfg, std=0.1, noise_clip=0.3, decay_factor=0.9999):
         super().__init__()
         self.std = std
@@ -34,7 +33,7 @@ class ActorNet(nn.Module):
         """ reduce the noise magnitude over time"""
         self.std *=self.decay_factor
 
-class CriticNet(nn.Module):
+class Critic(nn.Module):
     def __init__(self, network_cfg):
         super().__init__()
         self.network = build_network(network_cfg)
@@ -62,7 +61,6 @@ class DDPG:
                 polyak = 0.99,
                 start_steps=100,
                 ):
-        super().__init__()
         self.num_actions = num_actions
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -70,17 +68,17 @@ class DDPG:
         actor_cfg = actor.copy()
         actor_cfg['in_channels']=num_states
         actor_cfg['out_channels']=num_actions
-        self.actor = ActorNet(actor_cfg, **action_noise).to(self.device)
+        self.actor = Actor(actor_cfg, **action_noise).to(self.device)
         self.actor.noise_clip = None # We don't do noise clip for actor network
-        self.actor_target =  ActorNet(actor_cfg, **action_noise).to(self.device)
+        self.actor_target =  Actor(actor_cfg, **action_noise).to(self.device)
         self.actor_optimizer = build_optimizer(self.actor, actor_optimizer)
 
         # The critic and critic target network
         critic_cfg = critic.copy()
         critic_cfg['in_channels']=num_states+num_actions
         critic_cfg['out_channels']=1
-        self.critic = CriticNet(critic_cfg).to(self.device)
-        self.critic_target = CriticNet(critic_cfg).to(self.device)
+        self.critic = Critic(critic_cfg).to(self.device)
+        self.critic_target = Critic(critic_cfg).to(self.device)
 
         # The critic and critic target twin-networks
         self.critic_optimizer = build_optimizer(self.critic, critic_optimizer)
@@ -103,6 +101,16 @@ class DDPG:
         self.actor_target.load_state_dict(self.actor.state_dict())
         self.critic_target.load_state_dict(self.critic.state_dict())
 
+    def update_target_networks(self):
+        for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
+            target_param.data.copy_(self.polyak * target_param.data + (1 - self.polyak) * param.data)
+
+        for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
+            target_param.data.copy_(self.polyak * target_param.data + (1 - self.polyak) * param.data) 
+
+    def store_transition(self, state, action, reward, new_state, done):
+        self.memory.addMemory(state, action, reward, new_state, done)
+
     def act(self,state, is_train=False):
         # To improve exploration at the start of training,
         # in the first start_steps, the agent takes actions 
@@ -115,9 +123,6 @@ class DDPG:
         action = self.actor(input, add_noise=is_train)
         self.actor.decay_noise()
         return action.cpu().detach().numpy().flatten()
-    
-    def store_transition(self, state, action, reward, new_state, done):
-        self.memory.addMemory(state, action, reward, new_state, done)
 
     def learn(self, state, action, reward, new_state, done):
         # Store the trainsition
@@ -170,9 +175,3 @@ class DDPG:
 
         return q_target.unsqueeze(1) # Output [batch_size, 1]
 
-    def update_target_networks(self):
-        for param, target_param in zip(self.actor.parameters(), self.actor_target.parameters()):
-            target_param.data.copy_(self.polyak * target_param.data + (1 - self.polyak) * param.data)
-
-        for param, target_param in zip(self.critic.parameters(), self.critic_target.parameters()):
-            target_param.data.copy_(self.polyak * target_param.data + (1 - self.polyak) * param.data) 

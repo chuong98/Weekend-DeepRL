@@ -1,4 +1,3 @@
-
 import torch
 from torch import nn 
 from mmcv.runner.optimizer import build_optimizer
@@ -14,11 +13,12 @@ class TwinCritic(nn.Module):
     
     def forward(self, states, actions):
         x = torch.cat([states, actions], dim=1)
+        return self.critic_1(x), self.critic_2(x)
+
+    def q1(self, states, actions):
+        x = torch.cat([states, actions], dim=1)
         return self.critic_1(x)
 
-    def forward_twin(self, states, actions):
-        x = torch.cat([states, actions], dim=1)
-        return self.critic_1(x), self.critic_2(x)
 
 
 @AGENTS.register_module()
@@ -53,7 +53,7 @@ class TD3(DDPG):
         (states, actions, rewards, next_states, finals) = mini_batch
 
         # compute the loss for the critic networks
-        q1_eval, q2_eval = self.critic.forward_twin(states, actions)
+        q1_eval, q2_eval = self.critic(states, actions)
         with torch.no_grad():
             q_target = self.get_critic_targets(rewards, next_states, finals)
         critic_loss = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
@@ -66,7 +66,7 @@ class TD3(DDPG):
         #update the target networks once every network_inters 
         if self.learn_step_counter % self.network_iters ==0:
             # Actor Loss
-            q_val = self.critic(states, self.actor(states))
+            q_val = self.critic.q1(states, self.actor(states))
             actor_loss = -q_val.mean() # We want to maximize the q_val
             
             # backward and optimize the actor network
@@ -88,7 +88,7 @@ class TD3(DDPG):
 
         # Step 2: The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs
-        q1_target, q2_target = self.critic_target.forward_twin(next_states, next_actions)
+        q1_target, q2_target = self.critic_target(next_states, next_actions)
 
         # Step 3: We pick the minimum of these two Q-values to get the target of the two Critic
         q_target_min = torch.min(q1_target, q2_target)

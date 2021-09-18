@@ -5,12 +5,15 @@ Weekend Deep Reinforcement Learning (DRL) is a self-study of DRL in my free time
 DRL is very easy, especially when you already have a bit background in Control and Deep Learning. 
 Even without the background, the concept is still very simple, so why not study and have fun with it.
 
-My implementation aims to provides a minimal code with short notes for theory summary.
-The code's modules are based on [MMCV](https://github.com/open-mmlab/mmcv) framework, thus very easy to adopt, adjust components by changing the config files.
+My implementation aims to provides a minimal code implementation, and short notes to summarize the theory.
++ The code, modules, and config system are written based on `mmcv` [configs and registry system](https://mmcv.readthedocs.io/en/latest/understand_mmcv.html), thus very easy to adopt, adjust components by changing the config files.
++ Notes: No lengthy math, just the motivation concept, key equations for implementing, and a summary of tricks that makes the methods work.  
 
-Other great resource for self-study RL:
+Following are the great resource that I learn from:
++ https://spinningup.openai.com/en/latest/
 + https://simoninithomas.github.io/deep-rl-course/#syllabus
 + https://github.com/sweetice/Deep-reinforcement-learning-with-pytorch
++ https://github.com/DLR-RM/stable-baselines3
 + https://github.com/thu-ml/tianshou
 
 ### 1. Env Setup:
@@ -47,7 +50,7 @@ env.close()
 + List all available environments: `gym.envs.registry.all()`.
 
 ### 3. Algorithms:
-Best viewed in VSCode due to latex rendering.
+
 1. [Q-Learning](configs/QLearning/ReadMe.md): Introduction to RL with Q-Learning
 2. [Deep Q-Learning](configs/DQN/ReadMe.md): 
    + Deep Q-Network (DQN - Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
@@ -57,7 +60,7 @@ Best viewed in VSCode due to latex rendering.
    + [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ReadMe.pdf): [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
    + [Twin Delayed DDPG (TD3 - ICML 2018)](configs/TD3/ReadMe.pdf): [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
    + [Soft Actor-Critic (SAC - ICML 2018)](config/SAC/README.md)
-
+   + [Smooth Exploration for Robotic Reinforcement Learning]
 
 ### 4. Usage:
 
@@ -70,4 +73,3 @@ For example, to train a Deep Q-Learning (DQN) for mountain car env, use:
 ```bash
 python tools/train.py configs/DQN/dqn_mountain_car.py
 ```
-The config system and modules are written based on `mmcv` [configs and registry system](https://mmcv.readthedocs.io/en/latest/understand_mmcv.html)

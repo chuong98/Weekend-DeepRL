@@ -20,7 +20,7 @@
     $$q_1 = Q_{T1}(s',a'|\theta_{T1}), q_2 = Q_{T2}(s',a'|\theta_{T2})$$ 
   + We compute the `q_target` by
     $$ q_{target} = r + \gamma \min(q_1,q_2)$$
-  
+    The term $\min(q_1,q_2)$ is often referred as `Clipped Double-Q` trick.
 + Then, we update the Critic Networks by:
   + Evaluate the current action-values using the twin-Critic networks:  
     $$q_1 = Q_1(s',a'|\theta_1), q_2 = Q_2(s',a'|\theta_2)$$ 
