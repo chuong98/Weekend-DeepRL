@@ -40,6 +40,15 @@ class DQN:
         self.loss_func = nn.MSELoss() 
         self.optimizer = build_optimizer(self.q_net, optimizer)
 
+    def _init_weights(self):
+        self.t_net.load_state_dict(self.q_net.state_dict())
+
+    def update_target_networks(self):
+        self.t_net.load_state_dict(self.q_net.state_dict())
+
+    def store_transition(self, state, action, reward, new_state, done):
+        self.memory.addMemory(state, action, reward, new_state, done)
+
     def act(self, state, is_train=False):
         input = torch.Tensor(state).unsqueeze(0).to(self.device)
 
@@ -51,18 +60,10 @@ class DQN:
             action = np.argmax(action_prob)
         return action
 
-    def store_transition(self, state, action, reward, new_state, done):
-        self.memory.addMemory(state, action, reward, new_state, done)
-
     def learn(self, state, action, reward, new_state, done):
         # Store the trainsition
         self.store_transition(state, action, reward, new_state, done)
         
-        #update the target network periodically
-        if self.learn_step_counter % self.network_iters ==0:
-            self.t_net.load_state_dict(self.q_net.state_dict())
-        self.learn_step_counter+=1
-
         #sample batch from memory
         mini_batch = self.memory.getMiniBatch(device=self.device)
         (states, actions, rewards, next_states, finals) = mini_batch
@@ -70,7 +71,7 @@ class DQN:
         #compute the loss
         q_eval = self.q_net(states).gather(1,actions.long().view(-1,1))
         with torch.no_grad():
-            q_target = self.get_target( rewards, next_states, finals)
+            q_target = self.get_targets(rewards, next_states, finals)
         loss = self.loss_func(q_eval, q_target)
 
         #backward and optimize the network 
@@ -78,7 +79,12 @@ class DQN:
         loss.backward()
         self.optimizer.step()
 
-    def get_target(self, rewards, next_states, finals):
+        #update the target network periodically
+        if self.learn_step_counter % self.network_iters ==0:
+            self.update_target_networks()
+        self.learn_step_counter+=1
+
+    def get_targets(self, rewards, next_states, finals):
         """
             Bootstrap the target 
         """ 

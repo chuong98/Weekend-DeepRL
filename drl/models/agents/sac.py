@@ -148,12 +148,14 @@ class SAC:
         critic_loss.backward()
         self.critic_optimizer.step()
 
-        #update the target networks once every network_inters 
+        #update the actor and target networks once every network_inters 
         if self.learn_step_counter % self.network_iters ==0:
             # Actor Loss
-            q1_val,q2_val = self.critic(states, self.actor.action(states))
-            q_val = torch.min(q1_val,q2_val)
-            actor_loss = -q_val.mean() # We want to maximize the q_val
+            pred_actions, log_prob = self.actor.action_with_log_prob(states)
+            q1_val,q2_val = self.critic(states, pred_actions)
+            q_val = torch.min(q1_val,q2_val) 
+
+            actor_loss = (self.alpha*log_prob -q_val).mean() # We want to maximize the q_val
             
             # backward and optimize the actor network
             self.actor_optimizer.zero_grad()
@@ -180,7 +182,7 @@ class SAC:
         q_target_min = torch.min(q1_target, q2_target)
 
         # Step 4: We add the Entropy of action
-        q_target_min += self.alpha*next_log_prob
+        q_target_min -= self.alpha*next_log_prob
 
         # Step 5: We get the final target of the two Critic models, 
         # which is: Qt = r + γ * min(Qt1, Qt2), where γ is the discount factor
