@@ -165,6 +165,9 @@ class SAC:
             # Update target network by momentum
             self.update_target_networks()
 
+            # TODO: Auto-tune alpha.
+            # https://github.com/pranz24/pytorch-soft-actor-critic/blob/master/sac.py
+
         self.learn_step_counter+=1
         
     def get_critic_targets(self, rewards, next_states, finals):
