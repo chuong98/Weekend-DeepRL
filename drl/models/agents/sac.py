@@ -22,7 +22,7 @@ class GaussianActor(nn.Module):
 
     def forward(self,state):
         net_out = self.network(state)
-        mu, log_std = net_out[:self.num_actions], net_out[-self.num_actions:]
+        mu, log_std = net_out[:,:self.num_actions], net_out[:,-self.num_actions:]
         log_std = torch.clamp(log_std, LOG_STD_MIN, LOG_STD_MAX)
         std = log_std.exp() 
         return mu, std 
@@ -31,24 +31,24 @@ class GaussianActor(nn.Module):
         mu, std = self.forward(state)
         # Pre-squashed Action
         pi_dist = Normal(mu,std)
-        action = pi_dist.rsample() if stochastic else mu
+        u = pi_dist.sample() if stochastic else mu
         # Squashed action
-        action = torch.tanh(action) 
+        action = torch.tanh(u) 
         return action
 
     def action_with_log_prob(self,state, stochastic=True):
         mu, std = self.forward(state)
         # Pre-squashed Action
         pi_dist = Normal(mu,std)
-        action = pi_dist.rsample() if stochastic else mu
+        u = pi_dist.rsample() if stochastic else mu
 
         # Compute log_prob from Gaussian, and then apply correction for Tanh squashing.
         # See: appendix C in SAC paper (arXiv 1801.01290) 
-        log_prob = pi_dist.log_prob(action).sum(axis=-1)
-        log_prob -= (2*(np.log(2) - action - F.softplus(-2*action))).sum(axis=1)
+        log_prob = pi_dist.log_prob(u).sum(axis=-1)
+        log_prob -= (2*(np.log(2) - u - F.softplus(-2*u))).sum(axis=1)
 
         # Squashed action
-        action = torch.tanh(action) 
+        action = torch.tanh(u) 
 
         return action, log_prob
 
@@ -126,7 +126,6 @@ class SAC:
 
         input = torch.Tensor(state).unsqueeze(0).to(self.device)
         action = self.actor.action(input, stochastic = is_train)
-            
         return action.cpu().detach().numpy().flatten()
 
     def learn(self, state, action, reward, new_state, done):
@@ -143,25 +142,30 @@ class SAC:
             q_target = self.get_critic_targets(rewards, next_states, finals)
         critic_loss = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
         
-        # backward and optimize the critic network 
-        self.critic_optimizer.zero_grad()
-        critic_loss.backward()
-        self.critic_optimizer.step()
+        try:
+            # backward and optimize the critic network 
+            self.critic_optimizer.zero_grad()
+            critic_loss.backward()
+            self.critic_optimizer.step()
+        except:
+            import pdb; pdb.set_trace()
 
         #update the actor and target networks once every network_inters 
-        if self.learn_step_counter % self.network_iters ==0:
+        if self.network_iters==1 or self.learn_step_counter % self.network_iters ==0:
             # Actor Loss
             pred_actions, log_prob = self.actor.action_with_log_prob(states)
             q1_val,q2_val = self.critic(states, pred_actions)
-            q_val = torch.min(q1_val,q2_val) 
-
-            actor_loss = (self.alpha*log_prob -q_val).mean() # We want to maximize the q_val
+            q_val = torch.min(q1_val,q2_val).squeeze() 
+            # We want to maximize the q_val
+            actor_loss = (self.alpha*log_prob -q_val).mean() 
             
-            # backward and optimize the actor network
-            self.actor_optimizer.zero_grad()
-            actor_loss.backward()
-            self.actor_optimizer.step()
-
+            try:
+                # backward and optimize the actor network
+                self.actor_optimizer.zero_grad()
+                actor_loss.backward()
+                self.actor_optimizer.step()
+            except:
+                import pdb; pdb.set_trace()
             # Update target network by momentum
             self.update_target_networks()
 
@@ -177,15 +181,12 @@ class SAC:
         # Step 2: The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs
         q1_target, q2_target = self.critic_target(next_states, next_actions)
-
-        # Step 3: We pick the minimum of these two Q-values to get the target of the two Critic
-        q_target_min = torch.min(q1_target, q2_target)
-
-        # Step 4: We add the Entropy of action
-        q_target_min -= self.alpha*next_log_prob
+        # Step 3: We pick the minimum of these two Q-values, and add the entropy
+        q_target_next = torch.min(q1_target, q2_target) 
 
         # Step 5: We get the final target of the two Critic models, 
-        # which is: Qt = r + γ * min(Qt1, Qt2), where γ is the discount factor
-        q_target = rewards + self.gamma* (1-finals) * q_target_min.squeeze() 
+        # which is: Qt = r + γ * (min(Qt1, Qt2) - alpha*log_prob(a))\
+        # where γ is the discount factor
+        q_target = rewards + self.gamma* (1-finals) * (q_target_next.squeeze() - self.alpha*next_log_prob)
 
         return q_target.unsqueeze(1) # Output [batch_size, 1]

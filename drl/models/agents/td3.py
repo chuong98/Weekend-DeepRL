@@ -64,7 +64,7 @@ class TD3(DDPG):
         self.critic_optimizer.step()
 
         #update the target networks once every network_inters 
-        if self.learn_step_counter % self.network_iters ==0:
+        if self.network_iters==1 or self.learn_step_counter % self.network_iters ==0:
             # Actor Loss
             q_val = self.critic.q1(states, self.actor(states))
             actor_loss = -q_val.mean() # We want to maximize the q_val
@@ -88,14 +88,14 @@ class TD3(DDPG):
 
         # Step 2: The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs
-        q1_target, q2_target = self.critic_target(next_states, next_actions)
+        q1_next, q2_next = self.critic_target(next_states, next_actions)
 
         # Step 3: We pick the minimum of these two Q-values to get the target of the two Critic
-        q_target_min = torch.min(q1_target, q2_target)
+        q_next = torch.min(q1_next, q2_next)
 
         # Step 4: We get the final target of the two Critic models, 
         # which is: Qt = r + γ * min(Qt1, Qt2), where γ is the discount factor
-        q_target = rewards + self.gamma* (1-finals) *q_target_min.squeeze()
+        q_target = rewards + self.gamma* (1-finals) *q_next.squeeze()
 
         return q_target.unsqueeze(1) # Output [batch_size, 1]
 
