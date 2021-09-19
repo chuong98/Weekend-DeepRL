@@ -77,3 +77,9 @@
     entropy = - log_prob_a
     ```
 
+### 4. What make SAC work?
++ Similar to TD3, it uses twin critic-networks to improve the estimation of Q value.
++ It uses stochasitic action function to allow exploration by its formulation.
++ The key to add entropy of the policy as an bonus reward to avoid being trapped in the local minimal.
++ Tuning the temperature $\alpha$ is challenging. In late version, the authors address this problem by proposing a mechanism to auto-tune $\alpha$
+

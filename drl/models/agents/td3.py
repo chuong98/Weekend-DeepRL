@@ -91,11 +91,11 @@ class TD3(DDPG):
         q1_next, q2_next = self.critic_target(next_states, next_actions)
 
         # Step 3: We pick the minimum of these two Q-values to get the target of the two Critic
-        q_next = torch.min(q1_next, q2_next)
+        q_next = torch.min(q1_next, q2_next).squeeze()
 
         # Step 4: We get the final target of the two Critic models, 
         # which is: Qt = r + γ * min(Qt1, Qt2), where γ is the discount factor
-        q_target = rewards + self.gamma* (1-finals) *q_next.squeeze()
+        q_target = rewards + self.gamma* (1-finals) *q_next
 
         return q_target.unsqueeze(1) # Output [batch_size, 1]
 
