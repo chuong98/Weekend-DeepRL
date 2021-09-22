@@ -36,11 +36,11 @@ class GaussianActor(nn.Module):
         action = torch.tanh(u) 
         return action
 
-    def action_with_log_prob(self,state, stochastic=True):
+    def sample(self,state):
         mu, std = self.forward(state)
         # Pre-squashed Action
         pi_dist = Normal(mu,std)
-        u = pi_dist.rsample() if stochastic else mu
+        u = pi_dist.rsample()
 
         # Compute log_prob from Gaussian, and then apply correction for Tanh squashing.
         # See: appendix C in SAC paper (arXiv 1801.01290) 
@@ -151,7 +151,7 @@ class SAC:
         #update the actor and target networks once every network_inters 
         if self.network_iters==1 or self.learn_step_counter % self.network_iters ==0:
             # Actor Loss
-            pred_actions, log_prob = self.actor.action_with_log_prob(states)
+            pred_actions, log_prob = self.actor.sample(states)
             q1_val,q2_val = self.critic(states, pred_actions)
             q_val = torch.min(q1_val,q2_val).squeeze() 
             # We want to maximize the q_val
@@ -175,7 +175,7 @@ class SAC:
             Bootstrap the target 
         """
         # Step 1: Predict the next actions using the target actor network
-        next_actions, next_log_prob = self.actor.action_with_log_prob(next_states)
+        next_actions, next_log_prob = self.actor.sample(next_states)
 
         # Step 2: The two Critic targets take each the couple (s’, a’) as input
         # and return two Q-values Qt1(s’,a’) and Qt2(s’,a’) as outputs

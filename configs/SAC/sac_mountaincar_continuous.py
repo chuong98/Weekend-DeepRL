@@ -16,11 +16,11 @@ agent=dict(type='SAC',
                 batch_size=256),
     actor_optimizer= dict(type='Adam',lr=1e-3),
     critic_optimizer= dict(type='Adam',lr=1e-3),
-    alpha=0.2, 
+    alpha=0.05, 
     gamma=0.995,
     explore_rate=0.3,
     polyak=0.995,
-    start_steps=100,
+    start_steps=1e4,
     )
 
 num_episodes=300
