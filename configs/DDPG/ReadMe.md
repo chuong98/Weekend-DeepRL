@@ -12,27 +12,27 @@
   + Naive discritization throws away information about the structure of action domain, which may be essential for solving the problems. 
 
 ### 2. Deep Deterministic Policy Gradient
-+ Recall that in DQN, we build an action-value function: $Q(s,a|\theta): R^n \rightarrow R^k$ with $n$ is the number of state and $k$ number of discrete action, to reflect the quality of each action $a$ at the state $s$. Since we only have $k$ actions, the optimal one can be found by computing the value for all actions, and then select one with highest value:
-    $$a_{opt}=\argmax_a Q(s,a|\theta)$$
++ Recall that in DQN, we build an action-value function: $Q_{\theta}(s): R^n \rightarrow R^k$ with $n$ is the number of states and $k$ number of discrete actions, to reflect the quality of all possible action $a$ performing at the state $s$. Since we only have $k$ actions, the optimal one can be easily selected as the one with highest value:
+    $$a_{opt}=\argmax_{a_i} Q_{\theta}(s)[a_i]$$
 + However, when $a$ is continuous, solving the maximization is no longer easy. A possible way is by taking derivative and set to 0, i.e:
-    $$ \nabla_a Q(s,a_{opt})=0 $$ 
+    $$ \nabla_a Q_{\theta}(a_{opt}|s)=0 $$ 
 + In order to solve this, $Q$ must be differentiable w.r.t $a$, and this is exactly how DDPG extends the DQN:
-  + Instead of solving $a$ that maximizes $Q$, we create another network $A(s|\phi)$ to directly predict the optimal action $a$. For a system with $n$ states, and the agent has $m$ DOF, network $A(s|\phi)$ maps from $R^n$ to $R^m$.  
-  + The network $A(s|\phi)$ is trained to maximize $Q(s, A(s|\phi)|\theta)$ simply by gradient descent:
-    $$\phi_{t+1} = \phi_t + \alpha \nabla_\phi Expected[-Q(s,A(s|\phi))]$$
-    Note, we use gradient descent on **negative** $Q(s,A(s|\phi)$ since our objective is to **maximize** the expected rewards in $Q$. 
-+ Note that, $Q(s, A(s|\phi)|\theta)$ can be written as $Q(s|\theta, \phi)$ to express that it depends on two sets of network parameters $\theta$ and $\phi$. However, they are decoupled, such that:
-  + The network $Q(s,a|\theta)$ is called `Critic` since it evaluates the quality of action $a$. It is updated exactly as in DQN by treating action $a$ (and so on for $\phi$) as constant. Different with DQN, in DDPG, $Q(s,a|\theta): R^{n+m} \rightarrow R$ has $concat([s,a])$ as input, and **outputs a scalar**. 
-  + The network $A(s|\phi)$ is called `Actor` since it directly makes the decision. It is updated by treating $\theta$ as constant. 
+  + Instead of solving $a$ that maximizes $Q$, we create a **policy** network $\pi_{\phi}(s)$ to directly predict the optimal action $a$. For a system with $n$ states, and the agent has $m$ DOF, $\pi_{\phi}(s): R^n \rightarrow R^m$. 
+  + Since $a$ is now continuous, we change the value-network to $Q_{\theta}(s,a): R^{n+m} \rightarrow R$, where we simply concatenate $[s,a]$ as the input to $Q_{\theta}(s,a)$.
+  + The network $\pi_{\phi}(s)$ is trained to maximize $Q_{\theta}(s, \pi_{\phi}(s))$ simply by gradient descent:
+    $$\phi_{t+1} = \phi_t + \alpha \nabla_\phi Expected[-Q_{\theta}(s,\pi_{\phi}(s))]$$
+    Note, we use gradient descent on **negative** $Q_{\theta}(s,pi_{\phi}(s)$ since our objective is to **maximize** the expected values $Q$. 
++ Note that, $Q_{\theta}(s, a)$ and $\pi_\phi(s)$ are decoupled, such that:
+  + The network $Q_{\theta}(s,a)$ is called `Critic` since it evaluates the quality of action $a$. It is updated exactly as in DQN by treating action $a$ (and so on for $\phi$) as constant. 
+  + The network $\pi_{\phi}(s)$ is called `Actor` since it directly makes the action. It is updated by treating $\theta$ as constant. 
   + In training implementation, we used two separated optimizers, one for each network.
-  + In inference, only network $A(a|\phi)$ is used to predict action, and $Q(s,a|\theta)$ can be safely discarded. 
-
+  + In inference, only network $\pi_{\phi}(a)$ is used to predict action, and $Q_{\theta}(s,a)$ can be safely discarded. 
 
 ### 3. What makes DDPG work:
 + Since DDPG is an extension of DQN, it inherits the keys of DQN, namely `TargetNetwork` and `Replayed Buffer`. 
-+ Here, we need two target networks $A'$ and $Q'$ for the main networks $A$ and $Q$, respectively. Slightly different with DQN, instead of update the target networks by snapshot of the main networks once every $\tau$ steps, we update it once per main network update by momentum (a.k.a `polyak`) average
-    $$ \theta_{target} \leftarrow \rho \theta_{target} + (1-\rho)\theta $$
-    $$ \phi_{target} \leftarrow \rho \phi_{target} + (1-\rho)\phi $$
++ Here, we need two target networks $\pi_{\bar{\phi}}$ and $Q_{\bar{\theta}}$ for the main networks $\pi_\phi$ and $Q_\theta$, respectively. Slightly different with DQN, instead of update the target networks by snapshot of the main networks once every $\tau$ steps, we update it once per main network update by momentum (a.k.a `polyak`) average
+    $$ \bar{\theta} \leftarrow \rho \bar{\theta}+ (1-\rho)\theta $$
+    $$ \bar{\phi} \leftarrow \rho \bar{\phi} + (1-\rho)\phi $$
     where $\rho \in [0,1]$ is called `polyak`, and often close to 1, .e.g 0.99.
 + An important key of RL is the balance of Exploration vs Exploitation. 
   + Since the actor network $A$ outputs the action directly, we add a small Gaussian noise $N(0,\sigma)$ to the action $a$ for random exploration during training. 
