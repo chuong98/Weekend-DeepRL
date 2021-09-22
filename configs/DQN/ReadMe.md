@@ -11,9 +11,8 @@ Deep Q-learning uses a Deep Neural Network to approximate Q-function.
 
 Similar to the original Q-Learning, DQN updates the parameters after taking action $a_t$ in the state $s_t$, and observing the immediate reward $r_{t}$ and resulting state $s_{t+1}$. Concretely:
 
-$$\theta_{t+1} = \theta_t + \alpha \frac{1}{2}\nabla _{\theta}(Q_{target}(a|s_{t+1}) - Q_{\theta}(a_t|s_t))^2 $$,
-where:
-$$Q_{target}=r_t + \gamma \max_a Q_{\theta}(a|s_{t+1}) $$
+$$\theta_{t+1} = \theta_t + \alpha \frac{1}{2}\nabla _{\theta}(Q_{target} - Q_{\theta}(a_t|s_t))^2 $$,
+$$\text{where:} \hspace{1cm} Q_{target}=r_t + \gamma \max_a Q_{\theta}(a|s_{t+1}) $$
 
 ### 3. What makes DQN work?
 Two important ingredients of DQN algorithm as proposed by Mnih et. al. (2015) are the use of:
