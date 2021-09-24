@@ -15,7 +15,7 @@ Following are the great resource that I learn from:
 + https://github.com/sweetice/Deep-reinforcement-learning-with-pytorch
 + https://github.com/DLR-RM/stable-baselines3
 + https://github.com/thu-ml/tianshou
-
++ https://github.com/araffin/rl-baselines-zoo
 ### 1. Env Setup:
    
 ```bash 

@@ -63,11 +63,12 @@ class SAC:
             buffer = dict(capacity=2000, batch_size=128),
             actor_optimizer=dict(type='Adam', lr=1e-3),
             critic_optimizer=dict(type='Adam', lr=1e-3),
-            alpha = 0.1,
+            alpha_optimizer=dict(type='Adam', lr=1e-3),
+            alpha0 = 0.1, 
             gamma=0.9,
             explore_rate=0.3,
             polyak = 0.99,
-            network_iters=1,
+            target_update_iters=1,
             start_steps=100):
 
         self.num_actions = num_actions
@@ -93,12 +94,17 @@ class SAC:
         # The memory is used to store and replay the experience
         self.memory = build_buffer(buffer)
 
+        # Auto-tune alpha
+        self.alpha = alpha0 #init value
+        self.log_alpha = torch.tensor(np.log(alpha0),requires_grad=True, device=self.device)
+        self.target_entropy = -self.num_actions 
+        self.alpha_optimizer = torch.optim.Adam([self.log_alpha],alpha_optimizer['lr'])
+        
         # Agent parameters
-        self.alpha = alpha
         self.gamma = gamma
         self.explore_rate = explore_rate
         self.polyak = polyak
-        self.network_iters= network_iters
+        self.target_update_iters= target_update_iters
         self.start_steps = start_steps
         self.learn_step_counter = 0
                 
@@ -140,33 +146,37 @@ class SAC:
         q1_eval, q2_eval = self.critic(states, actions)
         with torch.no_grad():
             q_target = self.get_critic_targets(rewards, next_states, finals)
-        critic_loss = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
+        loss_critic = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
         
         # backward and optimize the critic network 
         self.critic_optimizer.zero_grad()
-        critic_loss.backward()
+        loss_critic.backward()
         self.critic_optimizer.step()
 
-
-        #update the actor and target networks once every network_inters 
-        if self.network_iters==1 or self.learn_step_counter % self.network_iters ==0:
+        #update the actor and target networks once every target_update_iters 
+        if self.target_update_iters==1 or self.learn_step_counter % self.target_update_iters ==0:
             # Actor Loss
             pred_actions, log_prob = self.actor.sample(states)
             q1_val,q2_val = self.critic(states, pred_actions)
             q_val = torch.min(q1_val,q2_val).squeeze() 
             # We want to maximize the q_val
-            actor_loss = (self.alpha*log_prob -q_val).mean() 
+            loss_actor = (self.alpha*log_prob -q_val).mean() 
             
             # backward and optimize the actor network
             self.actor_optimizer.zero_grad()
-            actor_loss.backward()
+            loss_actor.backward()
             self.actor_optimizer.step()
 
             # Update target network by momentum
             self.update_target_networks()
 
-            # TODO: Auto-tune alpha.
-            # https://github.com/pranz24/pytorch-soft-actor-critic/blob/master/sac.py
+            # Auto-tune alpha.
+            loss_alpha = -self.log_alpha * (log_prob.detach().mean() + self.target_entropy)
+            self.alpha_optimizer.zero_grad()
+            loss_alpha.backward()
+            self.alpha_optimizer.step()
+            self.alpha = self.log_alpha.detach().exp()
+
 
         self.learn_step_counter+=1
         

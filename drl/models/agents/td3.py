@@ -20,17 +20,16 @@ class TwinCritic(nn.Module):
         return self.critic_1(x)
 
 
-
 @AGENTS.register_module()
 class TD3(DDPG):
     def __init__(self, 
                     num_states,
                     num_actions,
-                    network_iters=2,
+                    target_update_iters=2,
                     *args,
                     **kwargs): 
         super().__init__(num_states, num_actions, *args,**kwargs)
-        self.network_iters= network_iters
+        self.target_update_iters= target_update_iters
 
         # TD3 only changes the Critic Network 
         critic_cfg = kwargs['critic'].copy()
@@ -56,22 +55,22 @@ class TD3(DDPG):
         q1_eval, q2_eval = self.critic(states, actions)
         with torch.no_grad():
             q_target = self.get_critic_targets(rewards, next_states, finals)
-        critic_loss = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
+        loss_critic = self.loss_func(q1_eval, q_target) + self.loss_func(q2_eval, q_target)
         
         # backward and optimize the critic network 
         self.critic_optimizer.zero_grad()
-        critic_loss.backward()
+        loss_critic.backward()
         self.critic_optimizer.step()
 
-        #update the target networks once every network_inters 
-        if self.network_iters==1 or self.learn_step_counter % self.network_iters ==0:
+        #update the target networks once every target_update_iters 
+        if self.target_update_iters==1 or self.learn_step_counter % self.target_update_iters ==0:
             # Actor Loss
             q_val = self.critic.q1(states, self.actor(states))
-            actor_loss = -q_val.mean() # We want to maximize the q_val
+            loss_actor = -q_val.mean() # We want to maximize the q_val
             
             # backward and optimize the actor network
             self.actor_optimizer.zero_grad()
-            actor_loss.backward()
+            loss_actor.backward()
             self.actor_optimizer.step()
 
             # Update target network by momentum

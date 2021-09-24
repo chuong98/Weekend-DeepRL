@@ -14,7 +14,7 @@ agent=dict(type='DQN',
     optimizer= dict(type='Adam',lr=1e-3),
     gamma=0.995,
     explore_rate=0.1,
-    network_iters=100            
+    target_update_iters=100            
     )
 
 num_episodes=300

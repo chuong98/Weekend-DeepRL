@@ -136,21 +136,21 @@ class DDPG:
         q_eval = self.critic(states, actions)
         with torch.no_grad():
             q_target = self.get_critic_targets(rewards, next_states, finals)
-        critic_loss = self.loss_func(q_eval, q_target) 
+        loss_critic = self.loss_func(q_eval, q_target) 
         
         # backward and optimize the critic network 
         self.critic_optimizer.zero_grad()
-        critic_loss.backward()
+        loss_critic.backward()
         self.critic_optimizer.step()
 
-        #update the target networks once every network_inters 
+        #update the target networks once every target_update_iters 
         # Actor Loss: We want to maximize the expected value of q_val
         q_val = self.critic(states, self.actor(states))
-        actor_loss = -q_val.mean() 
+        loss_actor = -q_val.mean() 
         
         # backward and optimize the actor network
         self.actor_optimizer.zero_grad()
-        actor_loss.backward()
+        loss_actor.backward()
         self.actor_optimizer.step()
 
         # Update target network by polyak

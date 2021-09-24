@@ -16,7 +16,7 @@ class DQN:
                 optimizer=dict(type='Adam', lr=1e-3),
                 gamma=0.9,
                 explore_rate=0.1,
-                network_iters=100,
+                target_update_iters=100,
                 ):
         super().__init__()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -33,7 +33,7 @@ class DQN:
         # Agent parameters
         self.gamma = gamma
         self.explore_rate = explore_rate
-        self.network_iters = network_iters
+        self.target_update_iters = target_update_iters
         self.learn_step_counter = 0
         
         # Network optimizer
@@ -80,7 +80,7 @@ class DQN:
         self.optimizer.step()
 
         #update the target network periodically
-        if self.learn_step_counter % self.network_iters ==0:
+        if self.learn_step_counter % self.target_update_iters ==0:
             self.update_target_networks()
         self.learn_step_counter+=1
 
