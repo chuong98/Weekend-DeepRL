@@ -7,13 +7,17 @@
 ### 2. Deep Q-Learning
 Deep Q-learning uses a Deep Neural Network to approximate Q-function. 
   + For an $n-$dimentional state space $s\in R^n$ and an action space containing $m$ discrete actions, $Q_{\theta_t}(s): R^n \rightarrow R^m$. 
-  + So, the value of action $a_i$ is $q(a_i)=Q_{\theta_t}(s)[i]$, where $i$ is the row index  $i=1:m$. For convenience, we use the notation $Q_{\theta_t}(a|s)$
+  + So, the value of action $a_i$ is $Q_{\theta_t}(s)[i]$, where $i$ is the row index  $i=1:m$. For convenience, we use the notation $Q_{\theta_t}(a|s)$
 
 Similar to the original Q-Learning, DQN updates the parameters after taking action $a_t$ in the state $s_t$, and observing the immediate reward $r_{t}$ and resulting state $s_{t+1}$. Concretely:
 
 $$\theta_{t+1} = \theta_t + \alpha \frac{1}{2}\nabla _{\theta}(Q_{target} - Q_{\theta}(a_t|s_t))^2 $$,
 $$\text{where:} \hspace{1cm} Q_{target}=r_t + \gamma \max_a Q_{\theta}(a|s_{t+1}) $$
 
++ In theory, $Q_{target}$ should be the **collected rewards in the furture** after we finish this expisode by following this policy. However, "true" $Q_{target}$ is unknown during learning because we haven't finished the episode yet. 
++ Therefore, we boostrap (anticipate) it. Here, only $r_t$ is the new (real) reward, while $\max_a Q_{\theta}(a|s_{t+1})$ is the "pseudo new" rewards, that we extrapolate from old experiences learn in the past. That is why it is called "Boostrap learning".
+
+**Exploitation v.s. Exploration:** Similar to Q-Learning, we use $\epsilon$-greedy policy, for a probability $1-\epsilon$, we select the action that maximizes $Q$, while for a probability $\epsilon$, we randomly sample an action. An additional trick is that, we can use `softmax` probability of Q-values to sample the action, instead of uniform sampling.  
 ### 3. What makes DQN work?
 Two important ingredients of DQN algorithm as proposed by Mnih et. al. (2015) are the use of:
 + **Target Network**, with parameters $\bar{\theta}$, is the same as the online network except that its parameters are copied every $\tau$ steps from the online network, so that $\bar{\theta} \leftarrow \theta$ if $t \% \tau==0$, and keep fixed on all other steps. The target used by DQN is then:
