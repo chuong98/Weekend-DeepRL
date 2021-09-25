@@ -69,7 +69,8 @@ class SAC:
             explore_rate=0.3,
             polyak = 0.99,
             target_update_iters=1,
-            start_steps=100):
+            start_steps=100,
+            **kwargs):
 
         self.num_actions = num_actions
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'

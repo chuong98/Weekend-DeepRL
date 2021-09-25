@@ -2,7 +2,7 @@ env = dict(
     type='MountainCarContinuous-v0',
     monitor_freq=20,
     render=False,
-    num_episodes_solved=100)
+    num_epochs_solved=100)
 
 agent=dict(type='SAC',
     actor = dict(type='MLPNet', 
@@ -20,10 +20,10 @@ agent=dict(type='SAC',
     gamma=0.995,
     explore_rate=0.3,
     polyak=0.995,
-    start_steps=1e4,
+    start_epochs=50,
     )
 
-num_episodes=300
+num_epochs=300
 
 # checkpoint saving
 checkpoint_config = dict(interval=20)

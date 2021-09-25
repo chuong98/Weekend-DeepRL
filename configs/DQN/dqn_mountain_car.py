@@ -2,7 +2,7 @@ env = dict(
     type='MountainCar-v0',
     monitor_freq=20,
     render=False,
-    num_episodes_solved=100)
+    num_epochs_solved=100)
 
 agent=dict(type='DQN',
     network=dict(type='MLPNet', 
@@ -17,7 +17,7 @@ agent=dict(type='DQN',
     target_update_iters=100            
     )
 
-num_episodes=300
+num_epochs=300
 
 # checkpoint saving
 checkpoint_config = dict(interval=1)

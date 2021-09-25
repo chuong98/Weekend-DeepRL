@@ -39,7 +39,7 @@ def train_agent(cfg):
     # Experiments parameters
     max_number_of_steps = env.spec.max_episode_steps #200
     solved_reward_thr = env.spec.reward_threshold
-    num_episodes = cfg.num_episodes
+    num_epochs = cfg.num_epochs
     reward_list = []
 
     # Get some infor about action/observation space
@@ -57,10 +57,13 @@ def train_agent(cfg):
     # Build agent
     cfg.agent.num_states = env.observation_space.shape[0] if is_continuous_state else env.observation_space.n
     cfg.agent.num_actions = env.action_space.shape[0] if is_continuous_action else env.action_space.n
+    
+    start_epochs = cfg.agent.pop('start_epochs',10)
+    cfg.agent.start_steps = start_epochs*max_number_of_steps
     agent = build_agent(cfg.agent)
 
     # Experiment loop
-    for i_episode in tqdm(range(num_episodes)):
+    for i_episode in tqdm(range(num_epochs)):
         state = env.reset()
         episode_reward = 0
         
@@ -96,14 +99,14 @@ def train_agent(cfg):
         reward_list.append(episode_reward)
         # Consider the problem is solved if getting average reward 
         # above the threshold over 100 consecutive trials.
-        num_episodes_solved = cfg.env.get('num_episodes_solved',100)
-        if num_episodes_solved > 0 and i_episode > num_episodes_solved:
-            mean_reward = sum(reward_list[-num_episodes_solved:])/num_episodes_solved
+        num_epochs_solved = cfg.env.get('num_epochs_solved',100)
+        if num_epochs_solved > 0 and i_episode > num_epochs_solved:
+            mean_reward = sum(reward_list[-num_epochs_solved:])/num_epochs_solved
             if mean_reward > solved_reward_thr: 
                 break
 
         # TODO: Add save checkpoints, logs, evaluate
 
-    mean_reward = sum(reward_list[-num_episodes_solved:])/num_episodes_solved
+    mean_reward = sum(reward_list[-num_epochs_solved:])/num_epochs_solved
     print(f"Finished at Episode:{i_episode} - with mean reward: {mean_reward}")
     env.close()

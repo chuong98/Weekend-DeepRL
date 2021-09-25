@@ -27,7 +27,7 @@ if __name__ == '__main__':
     # Experiments parameters
     max_number_of_steps = env.spec.max_episode_steps #200
     reward_thr = env.spec.reward_threshold
-    num_episodes = args.episodes
+    num_epochs = args.episodes
 
     # Number of states is huge so in order to simplify the situation
     # we discretize the space to:
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # plt.ion()
     fig, ax = plt.subplots()
 
-    for i_episode in tqdm(range(num_episodes)):
+    for i_episode in tqdm(range(num_epochs)):
         observation = env.reset()
         episode_reward = 0
         # Discretize the observation to state
@@ -82,6 +82,6 @@ if __name__ == '__main__':
         reward_list.append(episode_reward)
 
     plt.plot(reward_list)
-    plt.plot([0, num_episodes],[reward_thr, reward_thr])
+    plt.plot([0, num_epochs],[reward_thr, reward_thr])
     plt.ylabel('Acumulated Reward')
     plt.show()  

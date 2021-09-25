@@ -17,6 +17,7 @@ class DQN:
                 gamma=0.9,
                 explore_rate=0.1,
                 target_update_iters=100,
+                **kwargs
                 ):
         super().__init__()
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
