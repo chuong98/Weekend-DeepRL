@@ -9,6 +9,9 @@ My implementation aims to provides a minimal code implementation, and short note
 + The code, modules, and config system are written based on `mmcv` [configs and registry system](https://mmcv.readthedocs.io/en/latest/understand_mmcv.html), thus very easy to adopt, adjust components by changing the config files.
 + Lecture Notes: No lengthy math, just the motivation concept, key equations for implementing, and a summary of tricks that makes the methods work. More important, I try to make the connection with previous methods as possible. 
 
+> My learning strategy is to go directly to summarize and implement the papers, starting from the basic one. I hate the fact that most of the books in RL always start with very heavy theory background, asking us to remember many vague definitions, such as what is On-Line, Off-Line, Policy Gradient, etc.
+NO, NO, NO !!! Let play with the basic blocks first. When we feel comfortable, just recap and introduce these concepts later. It is absolutely fine if you don't remember these definitions at all.  
+
 Following are the great resource that I learn from:
 + https://spinningup.openai.com/en/latest/
 + https://simoninithomas.github.io/deep-rl-course/#syllabus
