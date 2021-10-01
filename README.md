@@ -52,29 +52,34 @@ env.close()
 + List all available environments: `gym.envs.registry.all()`.
 
 ### 3. Algorithms:
-
+Paper ranking:
+   + :trophy: Must known benchmark papers. 
+   + :rocket: Improved version of benchmark papers. Come back after finishing the benchmark papers.
+   
 1. [Q-Learning](configs/QLearning/ReadMe.md): Introduction to RL with Q-Learning
 2. [Deep Q-Learning](configs/DQN/ReadMe.md): 
-   + [Deep Q-Network (DQN - Nature 2015)](https://www.nature.com/articles/nature14236):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
-   + [Double-DQN (DDQN - AAAI 2016)](https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/download/12389/11847): [code](drl/models/agents/double_dqn.py), [config](configs/DQN/ddqn_mountain_car.py) 
-   + [Dueling DQN (DuelDQN - ICLM 2016)](http://proceedings.mlr.press/v48/wangf16.pdf)
+   + :trophy: [Deep Q-Network (DQN - Nature 2015)](https://www.nature.com/articles/nature14236):  [code](drl/models/agents/dqn.py) | [config](configs/DQN/dqn_mountain_car.py) 
+   + :trophy: [Double-DQN (DDQN - AAAI 2016)](https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/download/12389/11847): [code](drl/models/agents/double_dqn.py) | [config](configs/DQN/ddqn_mountain_car.py) 
+   + :rocket: [Dueling DQN (DuelDQN - ICLM 2016)](http://proceedings.mlr.press/v48/wangf16.pdf)
 3. Actor-Critic methods:
-   + [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](https://arxiv.org/abs/1509.02971): [Note](configs/DDPG/ReadMe.pdf), [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
-   + [Twin Delayed DDPG (TD3 - ICML 2018)](https://arxiv.org/abs/1802.09477): [Note](configs/TD3/ReadMe.pdf), [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
-   + [Soft Actor-Critic (SAC - ICML 2018)](https://arxiv.org/abs/1812.05905): [Note](config/SAC/README.md), [code](drl/models/agents/sac.py), [config](configs/TD3/sac_mountaincar_continuous.py)
-   + [Meta-SAC](https://arxiv.org/abs/2007.01932)
-   + [Smooth Exploration for Robotic Reinforcement Learning]
-4. Policy Gradient:
-   + Recap and overview of the methods
+   + :trophy: [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](https://arxiv.org/abs/1509.02971): [Note](configs/DDPG/ReadMe.pdf) | [code](drl/models/agents/ddpg.py) | [config](configs/DDPG/ddpg_mountaincar_continuous.py)
+   + :trophy: [Twin Delayed DDPG (TD3 - ICML 2018)](https://arxiv.org/abs/1802.09477): [Note](configs/TD3/ReadMe.pdf) | [code](drl/models/agents/td3.py) | [config](configs/TD3/td3_mountaincar_continuous.py)
+   + :trophy: [Soft Actor-Critic (SAC - ICML 2018)](https://arxiv.org/abs/1812.05905): [Note](config/SAC/README.md) | [code](drl/models/agents/sac.py) | [config](configs/TD3/sac_mountaincar_continuous.py)
+   + :rocket: [Meta-SAC (ICML 7th Workshop -2020)](https://arxiv.org/abs/2007.01932)
+   + :rocket: [Smooth Exploration for Robotic Reinforcement Learning (arXiv 2021)](https://arxiv.org/abs/2005.05719)
+4. Recap and overview of RL methods:
+5. Policy Gradient:
    + Vanilla Policy Gradient 
-   + Trust Region Policy Optimization (TRPO)
-   + Proximal Policy Optimization (PP0).
-5. How to deal with Sparse Reward for Off-Line learning:
-   + [Priority Experience Replay (ICLR 2016)](https://arxiv.org/abs/1511.05952)
-   + [Hindsight Experience Replay (NIPS 2017)](https://arxiv.org/abs/1707.01495) 
-   + [First Return, Then Explore (Nature 2020)](https://arxiv.org/abs/2004.12919)
-6. On-Line Policy  
-
+   + :trophy: [Trust Region Policy Optimization (TRPO - ICML 2015)](https://arxiv.org/abs/1502.05477)
+   + :trophy: [Proximal Policy Optimization (PP0 -2017)](https://arxiv.org/abs/1707.06347).
+   + :rocket: [Truly Policy Optimization (TPPO - MLR 2020)](http://proceedings.mlr.press/v115/wang20b/wang20b.pdf)
+6. How to deal with Sparse Reward for Off-Line learning:
+   + :trophy: [Priority Experience Replay (ICLR 2016)](https://arxiv.org/abs/1511.05952)
+   + :trophy: [Hindsight Experience Replay (HER - NIPS 2017)](https://arxiv.org/abs/1707.01495) 
+   + :trophy: [First Return, Then Explore (Nature 2020)](https://arxiv.org/abs/2004.12919)
+7. On-Line Policy (TBD) 
+8. Model-Based Learning (TBD)
+9. Multi-Agent Learning (TBD)
 ### 4. Usage:
 
 Except the first `Q-Learning` tutorial, that is for RL introduction, all other methods can be easily trained as:
