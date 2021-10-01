@@ -58,8 +58,9 @@ def train_agent(cfg):
     cfg.agent.num_states = env.observation_space.shape[0] if is_continuous_state else env.observation_space.n
     cfg.agent.num_actions = env.action_space.shape[0] if is_continuous_action else env.action_space.n
     
-    start_epochs = cfg.agent.pop('start_epochs',10)
-    cfg.agent.start_steps = start_epochs*max_number_of_steps
+    if cfg.agent.get('start_steps',None) is None:
+        start_epochs = cfg.agent.get('start_epochs',10)
+        cfg.agent.start_steps = start_epochs*max_number_of_steps
     agent = build_agent(cfg.agent)
 
     # Experiment loop

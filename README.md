@@ -55,13 +55,20 @@ env.close()
 2. [Deep Q-Learning](configs/DQN/ReadMe.md): 
    + Deep Q-Network (DQN - Nature 2015):  [code](drl/models/agents/dqn.py), [config](configs/DQN/dqn_mountain_car.py) 
    + Double-DQN (DDQN - AAAI 2016): [code](drl/models/agents/double_dqn.py), [config](configs/DQN/ddqn_mountain_car.py) 
-   + Priority Experience Replay (ICLR 2016)
+   + Dueling DQN
 3. Actor-Critic methods:
    + [Deep Deterministic Policy Gradient (DDPG - ICLR 2016)](configs/DDPG/ReadMe.pdf): [code](drl/models/agents/ddpg.py), [config](configs/DDPG/ddpg_mountaincar_continuous.py)
    + [Twin Delayed DDPG (TD3 - ICML 2018)](configs/TD3/ReadMe.pdf): [code](drl/models/agents/td3.py), [config](configs/TD3/td3_mountaincar_continuous.py)
    + [Soft Actor-Critic (SAC - ICML 2018)](config/SAC/README.md)
    + [Smooth Exploration for Robotic Reinforcement Learning]
-
+4. Gradient Policy:
+   + Vanilla Policy Gradient 
+   + Trust Region Policy Optimization
+   + Proximal Policy Optimization.
+5. How to deal with Sparse Reward:
+   + Priority Experience Replay (ICLR 2016)
+   + HER 
+   + First Return, Then Explore.
 ### 4. Usage:
 
 Except the first `Q-Learning` tutorial, that is for RL introduction, all other methods can be easily trained as:
